@@ -23,7 +23,7 @@ public class ApartmentController {
 
     @GetMapping
     public ResponseEntity<Page<ApartmentDTO>> findAll(@RequestParam(value = "page", defaultValue = "1") int page,
-                                                      @RequestParam(value = "limit", defaultValue = "10") int limit) {
+                                                      @RequestParam(value = "limit", defaultValue = "20") int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         return ResponseEntity.ok(apartmentService.getAllApartments(pageable));
     }
@@ -33,4 +33,17 @@ public class ApartmentController {
         ApartmentDTO savedApartment = apartmentService.saveApartment(data);
         return new ResponseEntity<>(savedApartment, HttpStatus.CREATED);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApartmentDTO> updateApartment(@PathVariable Long id, @RequestBody JsonNode data) {
+        ApartmentDTO updatedApartment = apartmentService.updateApartment(data, id);
+        return new ResponseEntity<>(updatedApartment, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteApartment(@PathVariable Long id) {
+        apartmentService.deleteApartment(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

@@ -20,7 +20,7 @@ public class ResidentController {
 
     @GetMapping
     public ResponseEntity<Page<ResidentDTO>> getAllEquipments(@RequestParam(value = "page", defaultValue = "1") int page,
-                                                              @RequestParam(value = "limit", defaultValue = "10") int limit) {
+                                                              @RequestParam(value = "limit", defaultValue = "20") int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         return ResponseEntity.ok(residentService.getAllResidents(pageable));
     }

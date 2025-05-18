@@ -37,11 +37,14 @@ public class ApartmentServiceImpl implements ApartmentService {
 
     @Override
     public ApartmentDTO updateApartment(JsonNode data, Long id) {
-        return null;
+        Apartment apartment = apartmentRepository.findById(id).orElseThrow(
+                ()-> new RuntimeException("Apartment not found"));
+        apartment.setName(data.get("name").asText());
+        return ApartmentDTO.fromEntity(apartmentRepository.save(apartment));
     }
 
     @Override
     public void deleteApartment(Long id) {
-
+        apartmentRepository.deleteById(id);
     }
 }
