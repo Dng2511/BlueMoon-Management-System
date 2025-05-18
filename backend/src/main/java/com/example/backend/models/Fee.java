@@ -14,8 +14,8 @@ import java.time.YearMonth;
 public class Fee extends BaseModel{
     private String type; // Phí quản lý, gửi xe...
     private Integer amount;
-    private YearMonth month;
+    private Integer year;
+    private Integer month;
     private String description;
-
 }
 
