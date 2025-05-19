@@ -1,5 +1,6 @@
 package com.example.backend.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -25,6 +26,7 @@ public class Payment extends BaseModel{
 
     private Integer amountPaid;
     private LocalDate datePaid;
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String paymentMethod;
 
     protected void onCreate() {

@@ -18,7 +18,11 @@ public class Resident extends BaseModel {
     private LocalDate dob;
     private String cccd;
     private String phoneNumber;
+
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String gender;
+
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String occupation;
 
     @ManyToOne
