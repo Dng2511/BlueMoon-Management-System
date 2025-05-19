@@ -9,8 +9,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/residents")
@@ -25,16 +27,16 @@ public class ResidentController {
         return ResponseEntity.ok(residentService.getAllResidents(pageable));
     }
 
-    @PostMapping
-    public ResponseEntity<ResidentDTO> saveResident(@RequestBody JsonNode data) {
-        ResidentDTO savedResident = residentService.saveResident(data);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ResidentDTO> saveResident(@RequestBody JsonNode data, @RequestPart("imageFile") MultipartFile imageFile) {
+        ResidentDTO savedResident = residentService.saveResident(data, imageFile);
         return new ResponseEntity<>(savedResident, HttpStatus.CREATED);
     }
 
     // Cập nhật thông tin Resident theo ID
     @PutMapping("/{id}")
-    public ResponseEntity<ResidentDTO> updateResident(@RequestBody JsonNode data, @PathVariable Long id) {
-        ResidentDTO updatedResident = residentService.updateResident(data, id);
+    public ResponseEntity<ResidentDTO> updateResident(@RequestBody JsonNode data, @PathVariable Long id, MultipartFile imageFile) {
+        ResidentDTO updatedResident = residentService.updateResident(data, id, imageFile);
         return ResponseEntity.ok(updatedResident);
     }
 

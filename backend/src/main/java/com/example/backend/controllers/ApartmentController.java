@@ -2,7 +2,6 @@ package com.example.backend.controllers;
 
 
 import com.example.backend.dtos.ApartmentDTO;
-import com.example.backend.dtos.ApartmentDTO;
 import com.example.backend.services.ApartmentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
