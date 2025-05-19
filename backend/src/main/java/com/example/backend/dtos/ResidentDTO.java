@@ -23,6 +23,8 @@ public class ResidentDTO {
     private String phoneNumber;
     private String gender;
     private String occupation;
+    private String avatar;
+
     private ResApartment apartment;
     private String relation;
 
@@ -36,6 +38,7 @@ public class ResidentDTO {
                 resident.getPhoneNumber(),
                 resident.getGender(),
                 resident.getOccupation(),
+                resident.getAvatar(),
                 resident.getApartment() != null ? new ResApartment(resident.getApartment()) : null,
                 resident.getRelation() != null ? resident.getRelation().name() : null
         );

@@ -25,6 +25,8 @@ public class Resident extends BaseModel {
     @Column(columnDefinition = "NVARCHAR(255)")
     private String occupation;
 
+    private String avatar;
+
     @ManyToOne
     @JoinColumn(name = "room_id")
     private Apartment apartment;

@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -33,7 +34,7 @@ public class ResidentServiceImpl implements ResidentService {
     }
 
     @Override
-    public ResidentDTO saveResident(JsonNode data) {
+    public ResidentDTO saveResident(JsonNode data, MultipartFile imageFile) {
         Resident resident = new Resident();
         resident.setFullName(data.get("fullName").asText());
         resident.setCccd(data.get("cccd").asText());
@@ -44,6 +45,15 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setRelation(Relation.valueOf(data.get("relation").asText().toUpperCase()));
         Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
         resident.setApartment(apartment);
+        if (imageFile.isEmpty()){
+            resident.setAvatar("defaultImg");
+        }
+
+
+
+
+
+
         return ResidentDTO.fromEntity(residentRepository.save(resident));
     }
 
