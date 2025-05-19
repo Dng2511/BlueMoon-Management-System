@@ -1,5 +1,6 @@
 package com.example.backend.models;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class Fee extends BaseModel{
     private Integer amount;
     private Integer year;
     private Integer month;
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String description;
 }
 
