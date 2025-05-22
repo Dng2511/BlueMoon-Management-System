@@ -35,6 +35,12 @@ public class FeeController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping ("/{id}")
+    public ResponseEntity<Void> update(@RequestBody FeeDTO feeDTO, @PathVariable Long id) {
+        feeService.updateFee(feeDTO, id);
+        return ResponseEntity.ok().build();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteResident(@PathVariable Long id) {
         feeService.deleteFee(id);

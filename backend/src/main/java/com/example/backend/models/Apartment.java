@@ -19,6 +19,8 @@ public class Apartment extends BaseModel {
     @Column(columnDefinition = "NVARCHAR(255)")
     private String name;
 
+    private Integer area;
+
     @OneToMany(mappedBy = "apartment")
     private List<Resident> residents;
 }

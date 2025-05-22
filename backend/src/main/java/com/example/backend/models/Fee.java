@@ -19,5 +19,6 @@ public class Fee extends BaseModel{
     private Integer month;
     @Column(columnDefinition = "NVARCHAR(255)")
     private String description;
+    private boolean compulsory;
 }
 

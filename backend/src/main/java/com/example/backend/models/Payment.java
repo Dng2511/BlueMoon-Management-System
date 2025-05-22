@@ -28,34 +28,7 @@ public class Payment extends BaseModel{
     private LocalDate datePaid;
     @Column(columnDefinition = "NVARCHAR(255)")
     private String paymentMethod;
+    private String status;
 
-    protected void onCreate() {
-        int sum = 0;
-        if("electricity".equals(this.fee.getType())){
-            if (quantity > 400) {
-                sum += (quantity - 400) * 2927;
-                quantity = 400;
-            }
-            if (quantity > 300) {
-                sum += (quantity - 300) * 2834;
-                quantity = 300;
-            }
-            if (quantity > 200) {
-                sum += (quantity - 200) * 2536;
-                quantity = 200;
-            }
-            if (quantity > 100) {
-                sum += (quantity - 100) * 2014;
-                quantity = 100;
-            }
-            if (quantity > 50) {
-                sum += (quantity - 50) * 1734;
-                quantity = 50;
-            }
-            sum += quantity * 1678;
-        } else {sum = quantity* fee.getAmount();};
-
-        this.amountPaid = sum;
-    }
 }
 
