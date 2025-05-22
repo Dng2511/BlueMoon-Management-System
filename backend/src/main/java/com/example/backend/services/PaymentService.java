@@ -10,11 +10,13 @@ import org.springframework.data.domain.Pageable;
 public interface PaymentService {
     public Page<PaymentDTO> findAll(Pageable pageable);
 
-    public Page<PaymentDTO> findByUserId(Long userId, Pageable pageable);
+    public Page<PaymentDTO> findBy(Long userId, Pageable pageable);
 
-    public PaymentDTO save(JsonNode data, Long id);
+    public PaymentDTO save(JsonNode data);
 
     public PaymentDTO update(JsonNode data, Long id);
+
+    public void delete(Long id);
 
     void save(Fee fee, Resident Resident);
 }
