@@ -9,13 +9,20 @@ import com.example.backend.repositories.ResidentRepository;
 import com.example.backend.services.ResidentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,7 +41,7 @@ public class ResidentServiceImpl implements ResidentService {
     }
 
     @Override
-    public ResidentDTO saveResident(JsonNode data, MultipartFile imageFile) {
+    public ResidentDTO saveResident(JsonNode data)  {
         Resident resident = new Resident();
         resident.setFullName(data.get("fullName").asText());
         resident.setCccd(data.get("cccd").asText());
@@ -45,15 +52,7 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setRelation(Relation.valueOf(data.get("relation").asText().toUpperCase()));
         Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
         resident.setApartment(apartment);
-        if (imageFile.isEmpty()){
-            resident.setAvatar("defaultImg");
-        }
-
-
-
-
-
-
+        resident.setAvatar("default.jpg");
         return ResidentDTO.fromEntity(residentRepository.save(resident));
     }
 
@@ -70,6 +69,32 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setRelation(Relation.valueOf(data.get("relation").asText().toUpperCase()));
         Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
         resident.setApartment(apartment);
+        return ResidentDTO.fromEntity(residentRepository.save(resident));
+    }
+
+    @Override
+    public ResidentDTO updateResident(Long id, MultipartFile imageFile) {
+
+        Resident resident = residentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Resident not found"));
+        try{
+
+            String folderPath = new ClassPathResource("static/images/").getFile().getAbsolutePath();
+            String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
+
+            String oldImage = resident.getAvatar();
+            if (oldImage != null && !oldImage.equals("defaultImg")) {
+                Path oldImagePath = Paths.get(folderPath, oldImage);
+                Files.deleteIfExists(oldImagePath);
+            }
+
+            Path filePath = Paths.get(folderPath, fileName);
+            Files.copy(imageFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            resident.setAvatar(fileName);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         return ResidentDTO.fromEntity(residentRepository.save(resident));
     }
 

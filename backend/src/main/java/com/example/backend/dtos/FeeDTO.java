@@ -9,11 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class FeeDTO {
-    Long id;
-    String type;
-    Integer amount;
-    String month;
-    String description;
+    private Long id;
+    private String type;
+    private Integer amount;
+    private String month;
+    private String description;
+    private boolean compulsory;
 
     public static FeeDTO fromEntity(Fee f) {
         return new FeeDTO(
@@ -21,7 +22,8 @@ public class FeeDTO {
                 f.getType(),
                 f.getAmount(),
                 f.getYear() + "-" + String.format("%02d", f.getMonth()),
-                f.getDescription()
+                f.getDescription(),
+                f.isCompulsory()
         );
     }
 }

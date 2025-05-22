@@ -27,16 +27,22 @@ public class ResidentController {
         return ResponseEntity.ok(residentService.getAllResidents(pageable));
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<ResidentDTO> saveResident(@RequestBody JsonNode data, @RequestPart("imageFile") MultipartFile imageFile) {
-        ResidentDTO savedResident = residentService.saveResident(data, imageFile);
+    @PostMapping
+    public ResponseEntity<ResidentDTO> saveResident(@RequestBody JsonNode data) {
+        ResidentDTO savedResident = residentService.saveResident(data);
         return new ResponseEntity<>(savedResident, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/{id}")
+    public ResponseEntity<ResidentDTO> updateResident(@PathVariable("id") Long id, @RequestParam(value = "imageFile") MultipartFile imageFile) {
+        ResidentDTO updatedResident = residentService.updateResident(id, imageFile);
+        return new ResponseEntity<>(updatedResident, HttpStatus.OK);
     }
 
     // Cập nhật thông tin Resident theo ID
     @PutMapping("/{id}")
-    public ResponseEntity<ResidentDTO> updateResident(@RequestBody JsonNode data, @PathVariable Long id, MultipartFile imageFile) {
-        ResidentDTO updatedResident = residentService.updateResident(data, id, imageFile);
+    public ResponseEntity<ResidentDTO> updateResident(@RequestBody JsonNode data, @PathVariable Long id) {
+        ResidentDTO updatedResident = residentService.updateResident(data, id);
         return ResponseEntity.ok(updatedResident);
     }
 

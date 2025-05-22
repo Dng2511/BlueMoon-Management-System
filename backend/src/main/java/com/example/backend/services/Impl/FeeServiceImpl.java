@@ -2,12 +2,14 @@ package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.FeeDTO;
 import com.example.backend.models.Fee;
+import com.example.backend.models.Resident;
 import com.example.backend.repositories.FeeRepository;
+import com.example.backend.repositories.ResidentRepository;
 import com.example.backend.services.FeeService;
+import com.example.backend.services.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +19,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FeeServiceImpl implements FeeService {
     private final FeeRepository feeRepository;
+    private final ResidentRepository residentRepository;
+    private final PaymentService paymentService;
 
     @Override
     public Page<FeeDTO> getAllFees(Pageable pageable) {
@@ -59,7 +63,18 @@ public class FeeServiceImpl implements FeeService {
         f.setDescription(feeDTO.getDescription());
         f.setYear(year);
         f.setMonth(month);
+        f.setCompulsory(feeDTO.isCompulsory());
         feeRepository.save(f);
+        if(feeDTO.isCompulsory()) {
+            List<Resident> residents = residentRepository.findByRelationIn(List.of("owner", "tenant"));
+            for (Resident resident : residents) {
+                paymentService.save(f, resident);
+            }
+        }
+
+
+
+
     }
 
     @Override
