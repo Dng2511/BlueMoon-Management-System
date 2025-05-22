@@ -28,7 +28,6 @@ public class Payment extends BaseModel{
     private LocalDate datePaid;
     @Column(columnDefinition = "NVARCHAR(255)")
     private String paymentMethod;
-    private String status;
 
 }
 
