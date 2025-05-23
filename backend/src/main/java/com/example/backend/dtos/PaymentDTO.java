@@ -14,8 +14,8 @@ import java.time.LocalDate;
 public class PaymentDTO {
     private Long id;
     private Integer quantity;
-    private ApaPayment apaPayment;
-    private ApaFee apaFee;
+    private ResPayment resident;
+    private FeePayment fee;
     private Integer amountPaid;
     @JsonProperty("payment_method")
     private String paymentMethod;
@@ -26,8 +26,8 @@ public class PaymentDTO {
         return new PaymentDTO(
                 payment.getId(),
                 payment.getQuantity(),
-                new ApaPayment(payment.getResident()),
-                new ApaFee(payment.getFee()),
+                new ResPayment(payment.getResident()),
+                new FeePayment(payment.getFee()),
                 payment.getAmountPaid(),
                 payment.getPaymentMethod(),
                 payment.getDatePaid()
@@ -40,11 +40,11 @@ public class PaymentDTO {
 
     @Getter
     @Setter
-    static class ApaPayment{
+    static class ResPayment{
         private Long id;
         private String fullName;
 
-        public ApaPayment(Resident resident){
+        public ResPayment(Resident resident){
             this.id = resident.getId();
             this.fullName = resident.getFullName();
         }
@@ -52,11 +52,11 @@ public class PaymentDTO {
 
     @Getter
     @Setter
-    static class ApaFee{
+    static class FeePayment{
         private Long id;
         private String type;
 
-        public ApaFee(Fee fee) {
+        public FeePayment(Fee fee) {
             this.id = fee.getId();
             this.type = fee.getType();
         }

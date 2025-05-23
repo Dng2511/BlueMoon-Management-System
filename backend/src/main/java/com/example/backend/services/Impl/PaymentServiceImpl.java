@@ -117,6 +117,8 @@ public class PaymentServiceImpl implements PaymentService {
         if (Objects.equals(fee.getType(), "area")) {
             quantity = resident.getApartment().getArea();
         }
+        payment.setResident(resident);
+        payment.setFee(fee);
         payment.setQuantity(quantity);
         payment.setAmountPaid(fee.getAmount()*quantity);
         payment.setPaymentMethod("not yet paid");

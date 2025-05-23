@@ -45,7 +45,15 @@ public class FeeServiceImpl implements FeeService {
         f.setDescription(feeDTO.getDescription());
         f.setYear(year);
         f.setMonth(month);
+        f.setCompulsory(feeDTO.isCompulsory());
         feeRepository.save(f);
+        if(feeDTO.isCompulsory()) {
+            List<Resident> residents = residentRepository.findByRelationIn(List.of("OWNER", "TENANT"));
+            for (Resident resident : residents) {
+                paymentService.save(f, resident);
+            }
+        }
+
     }
 
     @Override
@@ -65,12 +73,7 @@ public class FeeServiceImpl implements FeeService {
         f.setMonth(month);
         f.setCompulsory(feeDTO.isCompulsory());
         feeRepository.save(f);
-        if(feeDTO.isCompulsory()) {
-            List<Resident> residents = residentRepository.findByRelationIn(List.of("owner", "tenant"));
-            for (Resident resident : residents) {
-                paymentService.save(f, resident);
-            }
-        }
+
 
 
 

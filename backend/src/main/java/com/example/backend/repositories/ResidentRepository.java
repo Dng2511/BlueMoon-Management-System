@@ -11,7 +11,6 @@ public interface ResidentRepository extends JpaRepository<Resident, Long> {
     @Override
     Page<Resident> findAll(Pageable pageable);
 
-    List<Resident> findByRelation();
 
     List<Resident> findByRelationIn(List<String> owner);
 }
