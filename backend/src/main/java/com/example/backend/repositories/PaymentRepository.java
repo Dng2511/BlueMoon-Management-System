@@ -9,5 +9,4 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Override
     Page<Payment> findAll(Pageable pageable);
 
-    Page<Payment> getPaymentBy();
 }
