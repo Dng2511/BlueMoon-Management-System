@@ -4,6 +4,7 @@ import com.example.backend.dtos.ResidentDTO;
 import com.example.backend.models.Apartment;
 import com.example.backend.models.Relation;
 import com.example.backend.models.Resident;
+import com.example.backend.models.StayStatus;
 import com.example.backend.repositories.ApartmentRepository;
 import com.example.backend.repositories.ResidentRepository;
 import com.example.backend.services.ResidentService;
@@ -31,8 +32,8 @@ public class ResidentServiceImpl implements ResidentService {
     private final ApartmentRepository apartmentRepository;
 
     @Override
-    public Page<ResidentDTO> getAllResidents(Pageable pageable) {
-        return residentRepository.findAll(pageable).map(ResidentDTO::fromEntity);
+    public Page<ResidentDTO> getAllResidents(Pageable pageable, String search, String gender) {
+        return residentRepository.findAll(pageable, search, gender).map(ResidentDTO::fromEntity);
     }
 
     @Override
@@ -50,6 +51,7 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setOccupation(data.get("occupation").asText());
         resident.setPhoneNumber(data.get("phoneNumber").asText());
         resident.setRelation(Relation.valueOf(data.get("relation").asText().toUpperCase()));
+        resident.setStayStatus(StayStatus.valueOf(data.get("stay_status").asText().toUpperCase()));
         Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
         resident.setApartment(apartment);
         resident.setAvatar("default.jpg");
@@ -67,6 +69,7 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setOccupation(data.get("occupation").asText());
         resident.setPhoneNumber(data.get("phoneNumber").asText());
         resident.setRelation(Relation.valueOf(data.get("relation").asText().toUpperCase()));
+        resident.setStayStatus(StayStatus.valueOf(data.get("stay_status").asText().toUpperCase()));
         Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
         resident.setApartment(apartment);
         return ResidentDTO.fromEntity(residentRepository.save(resident));

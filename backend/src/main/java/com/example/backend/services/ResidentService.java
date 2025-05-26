@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 public interface ResidentService {
-    public Page<ResidentDTO> getAllResidents(Pageable pageable);
+    public Page<ResidentDTO> getAllResidents(Pageable pageable, String search, String gender);
 
     public ResidentDTO getResident(Long id);
 
