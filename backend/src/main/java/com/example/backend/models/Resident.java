@@ -27,6 +27,10 @@ public class Resident extends BaseModel {
 
     private String avatar;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "stay_status", columnDefinition = "NVARCHAR(50)")
+    private StayStatus stayStatus;
+
     @ManyToOne
     @JoinColumn(name = "room_id")
     private Apartment apartment;

@@ -21,10 +21,12 @@ public class ResidentController {
     private final ResidentService residentService;
 
     @GetMapping
-    public ResponseEntity<Page<ResidentDTO>> getAllEquipments(@RequestParam(value = "page", defaultValue = "1") int page,
-                                                              @RequestParam(value = "limit", defaultValue = "20") int limit) {
+    public ResponseEntity<Page<ResidentDTO>> getAll(@RequestParam(value = "page", defaultValue = "1") int page,
+                                                    @RequestParam(value = "limit", defaultValue = "20") int limit,
+                                                    @RequestParam(value = "search", required = false) String search,
+                                                    @RequestParam(value = "gender", required = false) String gender) {
         Pageable pageable = PageRequest.of(page - 1, limit);
-        return ResponseEntity.ok(residentService.getAllResidents(pageable));
+        return ResponseEntity.ok(residentService.getAllResidents(pageable, search, gender));
     }
 
     @PostMapping

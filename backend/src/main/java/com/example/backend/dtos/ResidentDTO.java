@@ -24,6 +24,8 @@ public class ResidentDTO {
     private String gender;
     private String occupation;
     private String avatar;
+    @JsonProperty("stay_status")
+    private String stayStatus;
 
     private ResApartment apartment;
     private String relation;
@@ -39,6 +41,9 @@ public class ResidentDTO {
                 resident.getGender(),
                 resident.getOccupation(),
                 resident.getAvatar(),
+                resident.getStayStatus() != null
+                        ? resident.getStayStatus().name()
+                        : "UNREGISTERED",
                 resident.getApartment() != null ? new ResApartment(resident.getApartment()) : null,
                 resident.getRelation() != null ? resident.getRelation().name() : null
         );
