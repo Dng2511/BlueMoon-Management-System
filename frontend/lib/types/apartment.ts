@@ -10,6 +10,10 @@ export interface Apartment {
   residents: ApartmentResident[];
 }
 
+export interface CreateApartmentRequest {
+  name: string;
+}
+
 export interface PaginationMetadata {
   pageNumber: number;
   pageSize: number;
