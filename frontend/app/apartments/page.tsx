@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 
 export default function ApartmentsPage() {
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-6 px-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Apartments Management</h1>
         <Button>Add New Apartment</Button>
