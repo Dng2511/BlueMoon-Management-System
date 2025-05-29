@@ -1,13 +1,9 @@
 import { privateApi } from "./client";
-import { CreateFeeRequest, Fee, FeesResponse } from "../types/fee";
-
-interface GetFeesParams {
-  page?: number;
-  size?: number;
-}
+import { CreateFeeRequest, Fee, FeesResponse, UpdateFeeRequest } from "../types/fee";
+import { PaginationParams } from "../types/common";
 
 export const feesApi = {
-  getFees: async (params?: GetFeesParams) => {
+  getFees: async (params?: PaginationParams) => {
     const response = await privateApi.get<FeesResponse>("/fees", { params });
     return response.data;
   },
@@ -19,6 +15,16 @@ export const feesApi = {
 
   createFee: async (data: CreateFeeRequest) => {
     const response = await privateApi.post<Fee>("/fees", data);
+    return response.data;
+  },
+
+  updateFee: async (id: number, data: UpdateFeeRequest) => {
+    const response = await privateApi.put<Fee>(`/fees/${id}`, data);
+    return response.data;
+  },
+
+  deleteFee: async (id: number) => {
+    const response = await privateApi.delete(`/fees/${id}`);
     return response.data;
   },
 };

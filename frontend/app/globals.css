@@ -118,3 +118,18 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Prevent Radix UI components (DropdownMenu, Dialog, etc.) from adding margin-right to body */
+body[style*="margin-right"] {
+  margin-right: 0 !important;
+}
+
+/* Also prevent any padding-right that might be added */
+body[style*="padding-right"] {
+  padding-right: 0 !important;
+}
+
+/* Prevent any overflow hidden that might be set */
+body[style*="overflow: hidden"] {
+  overflow: visible !important;
+}
