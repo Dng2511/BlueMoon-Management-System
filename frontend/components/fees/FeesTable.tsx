@@ -30,6 +30,7 @@ import {
   IconGripVertical,
   IconLayoutColumns,
   IconPlus,
+  IconTrash,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -83,6 +84,8 @@ import {
 } from "@/components/ui/tabs"
 import { CreateFeeRequest, UpdateFeeRequest, Fee } from "@/lib/types/fee"
 import { FeeEditDrawer } from "./FeeEditDrawer"
+import { DeleteFeeDialog } from "./DeleteFeeDialog"
+import { BulkDeleteDialog } from "./BulkDeleteDialog"
 
 export const schema = z.object({
   id: z.number(),
@@ -143,11 +146,34 @@ export function FeesTable({
     pageSize: 10,
   })
   const [editingItem, setEditingItem] = React.useState<z.infer<typeof schema> | null>(null)
+  const [isBulkDeleting, setIsBulkDeleting] = React.useState(false)
 
   // Update local data when initialData changes
   React.useEffect(() => {
     setData(initialData)
   }, [initialData])
+
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (!onDelete) return
+    
+    const selectedRows = table.getFilteredSelectedRowModel().rows
+    const selectedIds = selectedRows.map(row => row.original.id)
+    
+    setIsBulkDeleting(true)
+    
+    try {
+      // Send multiple delete requests
+      await Promise.all(selectedIds.map(id => onDelete(id)))
+      
+      // Clear selection after successful deletion
+      setRowSelection({})
+    } catch (error) {
+      console.error('Failed to delete some fees:', error)
+    } finally {
+      setIsBulkDeleting(false)
+    }
+  }
 
   const columns: ColumnDef<z.infer<typeof schema>>[] = [
     {
@@ -254,16 +280,14 @@ export function FeesTable({
             <DropdownMenuItem>Make a copy</DropdownMenuItem>
             <DropdownMenuItem>Favorite</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => {
+            <DeleteFeeDialog
+              onConfirm={() => {
                 if (onDelete) {
                   onDelete(row.original.id);
                 }
               }}
-            >
-              Delete
-            </DropdownMenuItem>
+              isLoading={isDeleting}
+            />
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -354,6 +378,13 @@ export function FeesTable({
             <TabsTrigger value="focus-documents">Fee Reports</TabsTrigger>
           </TabsList>
           <div className="flex items-center gap-2">
+            {table.getFilteredSelectedRowModel().rows.length > 0 && (
+              <BulkDeleteDialog
+                selectedCount={table.getFilteredSelectedRowModel().rows.length}
+                onConfirm={handleBulkDelete}
+                isLoading={isBulkDeleting}
+              />
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">
