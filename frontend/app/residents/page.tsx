@@ -4,7 +4,10 @@ import { ResidentsTable } from "@/components/residents/ResidentsTable";
 import { useResidents } from "@/lib/hooks/use-residents";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CreateResidentRequest } from "@/lib/types/resident";
+import {
+  CreateResidentRequest,
+  UpdateResidentRequest,
+} from "@/lib/types/resident";
 
 export default function ResidentsPage() {
   const { residents, createResident, updateResident, deleteResident } =
@@ -14,7 +17,23 @@ export default function ResidentsPage() {
     try {
       await createResident.mutateAsync(data);
     } catch (error) {
-      console.error("Failed to create resident:", error);
+      // Error is already handled by the hook with toast
+    }
+  };
+
+  const handleUpdate = async (id: number, data: UpdateResidentRequest) => {
+    try {
+      await updateResident.mutateAsync(id, data);
+    } catch (error) {
+      // Error is already handled by the hook with toast
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    try {
+      await deleteResident.mutateAsync(id);
+    } catch (error) {
+      // Error is already handled by the hook with toast
     }
   };
 
@@ -69,19 +88,12 @@ export default function ResidentsPage() {
 
       <ResidentsTable
         residents={residents.data?.content ?? []}
-        onEdit={(resident) => {
-          // TODO: Implement edit dialog
-          console.log("Edit resident:", resident);
-        }}
-        onDelete={async (id) => {
-          try {
-            await deleteResident.mutateAsync(id);
-          } catch (error) {
-            console.error("Failed to delete resident:", error);
-          }
-        }}
+        onEdit={handleUpdate}
+        onDelete={handleDelete}
         onCreate={handleCreate}
         isCreating={createResident.isLoading}
+        isUpdating={updateResident.isLoading}
+        isDeleting={deleteResident.isLoading}
       />
     </div>
   );

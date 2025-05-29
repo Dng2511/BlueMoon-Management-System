@@ -5,6 +5,7 @@ import {
   UpdateResidentRequest,
   Resident,
 } from "../types/resident";
+import { toast } from "sonner";
 
 export function useResidents(params?: {
   search?: string;
@@ -46,26 +47,24 @@ export function useResidents(params?: {
       await residentsApi.createResident(data);
       const updatedData = await residentsApi.getResidents(params);
       setResidents((prev) => ({ ...prev, data: updatedData }));
+      toast.success("Resident created successfully");
     } catch (error) {
+      toast.error("Failed to create resident");
       throw error;
     } finally {
       setCreateLoading(false);
     }
   };
 
-  const updateResident = async ({
-    id,
-    data,
-  }: {
-    id: number;
-    data: UpdateResidentRequest;
-  }) => {
+  const updateResident = async (id: number, data: UpdateResidentRequest) => {
     try {
       setUpdateLoading(true);
       await residentsApi.updateResident(id, data);
       const updatedData = await residentsApi.getResidents(params);
       setResidents((prev) => ({ ...prev, data: updatedData }));
+      toast.success("Resident updated successfully");
     } catch (error) {
+      toast.error("Failed to update resident");
       throw error;
     } finally {
       setUpdateLoading(false);
@@ -78,7 +77,9 @@ export function useResidents(params?: {
       await residentsApi.deleteResident(id);
       const updatedData = await residentsApi.getResidents(params);
       setResidents((prev) => ({ ...prev, data: updatedData }));
+      toast.success("Resident deleted successfully");
     } catch (error) {
+      toast.error("Failed to delete resident");
       throw error;
     } finally {
       setDeleteLoading(false);

@@ -4,6 +4,7 @@ import * as React from "react";
 import {
   ColumnDef,
   ColumnFiltersState,
+  Row,
   SortingState,
   VisibilityState,
   flexRender,
@@ -22,7 +23,27 @@ import {
   IconDotsVertical,
   IconLayoutColumns,
   IconPlus,
+  IconGripVertical,
 } from "@tabler/icons-react";
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type UniqueIdentifier,
+} from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -49,16 +70,72 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Resident, CreateResidentRequest } from "@/lib/types/resident";
+import {
+  Resident,
+  CreateResidentRequest,
+  UpdateResidentRequest,
+} from "@/lib/types/resident";
 import { format } from "date-fns";
 import { CreateResidentDialog } from "./CreateResidentDialog";
+import { UpdateResidentDialog } from "./UpdateResidentDialog";
+import { DeleteResidentDialog } from "./DeleteResidentDialog";
 
 interface ResidentsTableProps {
   residents: Resident[];
-  onEdit?: (resident: Resident) => void;
-  onDelete?: (id: number) => void;
+  onEdit?: (id: number, data: UpdateResidentRequest) => Promise<void>;
+  onDelete?: (id: number) => Promise<void>;
   onCreate?: (data: CreateResidentRequest) => Promise<void>;
   isCreating?: boolean;
+  isUpdating?: boolean;
+  isDeleting?: boolean;
+}
+
+function DragHandle({ id }: { id: number }) {
+  const { attributes, listeners, setNodeRef } = useSortable({
+    id,
+  });
+
+  return (
+    <div ref={setNodeRef} {...attributes} {...listeners}>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="text-muted-foreground size-7 hover:bg-transparent cursor-grab active:cursor-grabbing"
+      >
+        <IconGripVertical className="text-muted-foreground size-3" />
+        <span className="sr-only">Drag to reorder</span>
+      </Button>
+    </div>
+  );
+}
+
+function DraggableRow({ row }: { row: Row<Resident> }) {
+  const { transform, transition, setNodeRef, isDragging } = useSortable({
+    id: row.original.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    position: "relative" as const,
+    zIndex: isDragging ? 1 : 0,
+  };
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={style}
+      data-state={row.getIsSelected() && "selected"}
+      data-dragging={isDragging}
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell key={cell.id}>
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
 }
 
 export function ResidentsTable({
@@ -67,20 +144,56 @@ export function ResidentsTable({
   onDelete,
   onCreate,
   isCreating,
+  isUpdating,
+  isDeleting,
 }: ResidentsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      id: false, // Hide the ID column
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
   });
+  const [data, setData] = React.useState<Resident[]>(residents);
+
+  // Update data when residents prop changes
+  React.useEffect(() => {
+    setData(residents);
+  }, [residents]);
+
+  const sortableId = React.useId();
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 5, // 5px movement before drag starts
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250, // 250ms delay before drag starts
+        tolerance: 5, // 5px movement tolerance
+      },
+    }),
+    useSensor(KeyboardSensor, {})
+  );
+
+  const dataIds = React.useMemo<UniqueIdentifier[]>(
+    () => residents?.map(({ id }) => id) || [],
+    [residents]
+  );
 
   const columns: ColumnDef<Resident>[] = [
+    {
+      id: "drag",
+      header: () => null,
+      cell: ({ row }) => <DragHandle id={row.original.id} />,
+    },
     {
       accessorKey: "id",
       header: "ID",
@@ -160,16 +273,20 @@ export function ResidentsTable({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-32">
-              <DropdownMenuItem onClick={() => onEdit?.(resident)}>
-                Edit
-              </DropdownMenuItem>
+              <UpdateResidentDialog
+                resident={resident}
+                onSubmit={async (data) => {
+                  if (onEdit) {
+                    await onEdit(resident.id, data);
+                  }
+                }}
+                isLoading={isUpdating}
+              />
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onDelete?.(resident.id)}
-              >
-                Delete
-              </DropdownMenuItem>
+              <DeleteResidentDialog
+                onConfirm={() => onDelete?.(resident.id)}
+                isLoading={isDeleting}
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -177,8 +294,19 @@ export function ResidentsTable({
     },
   ];
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (active && over && active.id !== over.id) {
+      setData((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
+
   const table = useReactTable({
-    data: residents,
+    data,
     columns,
     state: {
       sorting,
@@ -187,6 +315,7 @@ export function ResidentsTable({
       columnFilters,
       pagination,
     },
+    getRowId: (row) => row.id.toString(),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -246,13 +375,21 @@ export function ResidentsTable({
       </div>
       <div className="rounded-md border">
         <div className="relative w-full">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id} className="whitespace-nowrap">
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            modifiers={[restrictToVerticalAxis]}
+            onDragEnd={handleDragEnd}
+          >
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className="whitespace-nowrap bg-muted"
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -260,40 +397,33 @@ export function ResidentsTable({
                               header.getContext()
                             )}
                       </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="whitespace-nowrap">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
                     ))}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  <SortableContext
+                    items={dataIds}
+                    strategy={verticalListSortingStrategy}
                   >
-                    No results.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                    {table.getRowModel().rows.map((row) => (
+                      <DraggableRow key={row.id} row={row} />
+                    ))}
+                  </SortableContext>
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </DndContext>
         </div>
       </div>
       <div className="flex items-center justify-between px-2">

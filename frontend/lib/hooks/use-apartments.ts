@@ -1,25 +1,31 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { apartmentsApi } from "../api/apartments";
-import { CreateApartmentRequest } from "../types/apartment";
+import { Apartment } from "../types/apartment";
 
-export function useApartments(params?: { page?: number; size?: number }) {
-  const queryClient = useQueryClient();
-
-  const apartments = useQuery({
-    queryKey: ["apartments", params],
-    queryFn: () => apartmentsApi.getApartments(params),
+export function useApartments() {
+  const [apartments, setApartments] = useState<{
+    data?: { content: Apartment[] };
+    isLoading: boolean;
+    isError: boolean;
+    error?: any;
+  }>({
+    isLoading: true,
+    isError: false,
   });
 
-  const createApartment = useMutation({
-    mutationFn: (data: CreateApartmentRequest) =>
-      apartmentsApi.createApartment(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["apartments"] });
-    },
-  });
-
-  return {
-    apartments,
-    createApartment,
+  const fetchApartments = async () => {
+    try {
+      setApartments((prev) => ({ ...prev, isLoading: true, isError: false }));
+      const data = await apartmentsApi.getApartments();
+      setApartments({ data, isLoading: false, isError: false });
+    } catch (error) {
+      setApartments({ isLoading: false, isError: true, error });
+    }
   };
+
+  useEffect(() => {
+    fetchApartments();
+  }, []);
+
+  return { apartments, fetchApartments };
 }

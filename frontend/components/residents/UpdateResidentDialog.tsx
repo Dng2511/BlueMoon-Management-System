@@ -41,59 +41,59 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import {
-  CreateResidentRequest,
+  UpdateResidentRequest,
   Relation,
   StayStatus,
+  Resident,
 } from "@/lib/types/resident";
-import { IconPlus } from "@tabler/icons-react";
 import { useApartments } from "@/lib/hooks/use-apartments";
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Full name must be at least 2 characters"),
-  dob: z.date({
-    required_error: "Date of birth is required",
-  }),
+  dob: z.date(),
   cccd: z.string().min(9, "CCCD must be at least 9 characters"),
   gender: z.string().min(1, "Gender is required"),
   occupation: z.string().min(2, "Occupation must be at least 2 characters"),
   phoneNumber: z
     .string()
     .min(10, "Phone number must be at least 10 characters"),
-  apartmentId: z.string().min(1, "Apartment is required"),
-  relation: z.string().min(1, "Relation is required"),
-  stay_status: z.string().min(1, "Stay status is required"),
+  apartmentId: z.string(),
+  relation: z.string(),
+  stay_status: z.string(),
 });
 
-interface CreateResidentDialogProps {
-  onSubmit: (data: CreateResidentRequest) => Promise<void>;
+interface UpdateResidentDialogProps {
+  resident: Resident;
+  onSubmit?: (data: UpdateResidentRequest) => Promise<void>;
   isLoading?: boolean;
 }
 
-export function CreateResidentDialog({
+export function UpdateResidentDialog({
+  resident,
   onSubmit,
   isLoading,
-}: CreateResidentDialogProps) {
+}: UpdateResidentDialogProps) {
   const [open, setOpen] = React.useState(false);
   const { apartments } = useApartments();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      fullName: "",
-      dob: new Date(),
-      cccd: "",
-      gender: "",
-      occupation: "",
-      phoneNumber: "",
-      apartmentId: "",
-      relation: "",
-      stay_status: "PERMANENT_RESIDENCE",
+      fullName: resident.fullName,
+      dob: new Date(resident.dob),
+      cccd: resident.cccd,
+      gender: resident.gender,
+      occupation: resident.occupation,
+      phoneNumber: resident.phoneNumber,
+      apartmentId: resident.apartment?.id.toString() || "",
+      relation: resident.relation,
+      stay_status: resident.stay_status,
     },
   });
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await onSubmit({
+      await onSubmit?.({
         ...values,
         dob: format(values.dob, "yyyy-MM-dd"),
         apartmentId: parseInt(values.apartmentId),
@@ -101,25 +101,23 @@ export function CreateResidentDialog({
         stay_status: values.stay_status as StayStatus,
       });
       setOpen(false);
-      form.reset();
     } catch (error) {
-      console.error("Failed to create resident:", error);
+      console.error("Failed to update resident:", error);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>
-          <IconPlus className="mr-2 size-4" />
-          Add Resident
+        <Button variant="ghost" className="w-full justify-start">
+          Edit
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Add New Resident</DialogTitle>
+          <DialogTitle>Edit Resident</DialogTitle>
           <DialogDescription>
-            Fill in the details to add a new resident to the system.
+            Update the resident's information in the system.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -305,7 +303,6 @@ export function CreateResidentDialog({
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="stay_status"
@@ -344,7 +341,7 @@ export function CreateResidentDialog({
             </div>
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Creating..." : "Create Resident"}
+                {isLoading ? "Updating..." : "Update Resident"}
               </Button>
             </DialogFooter>
           </form>

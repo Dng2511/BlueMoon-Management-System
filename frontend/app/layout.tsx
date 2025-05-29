@@ -4,6 +4,7 @@ import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { SiteHeader } from "@/components/site-header";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -52,6 +53,7 @@ export default function RootLayout({
             </div>
           </SidebarInset>
         </SidebarProvider>
+        <Toaster position="top-center" />
       </body>
     </html>
   );
