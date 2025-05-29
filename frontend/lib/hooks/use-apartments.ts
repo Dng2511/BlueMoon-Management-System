@@ -1,8 +1,17 @@
 import { useState, useEffect } from "react";
 import { apartmentsApi } from "../api/apartments";
-import { Apartment } from "../types/apartment";
+import {
+  Apartment,
+  CreateApartmentRequest,
+  UpdateApartmentRequest,
+} from "../types/apartment";
+import { toast } from "sonner";
 
-export function useApartments() {
+export function useApartments(params?: {
+  search?: string;
+  page?: number;
+  size?: number;
+}) {
   const [apartments, setApartments] = useState<{
     data?: { content: Apartment[] };
     isLoading: boolean;
@@ -13,19 +22,74 @@ export function useApartments() {
     isError: false,
   });
 
-  const fetchApartments = async () => {
+  const [createLoading, setCreateLoading] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchApartments = async () => {
+      try {
+        setApartments((prev) => ({ ...prev, isLoading: true, isError: false }));
+        const data = await apartmentsApi.getApartments(params);
+        setApartments({ data, isLoading: false, isError: false });
+      } catch (error) {
+        setApartments({ isLoading: false, isError: true, error });
+        toast.error("Failed to load apartments");
+      }
+    };
+
+    fetchApartments();
+  }, [params]);
+
+  const createApartment = async (data: CreateApartmentRequest) => {
     try {
-      setApartments((prev) => ({ ...prev, isLoading: true, isError: false }));
-      const data = await apartmentsApi.getApartments();
-      setApartments({ data, isLoading: false, isError: false });
+      setCreateLoading(true);
+      await apartmentsApi.createApartment(data);
+      const updatedData = await apartmentsApi.getApartments(params);
+      setApartments((prev) => ({ ...prev, data: updatedData }));
+      toast.success("Apartment created successfully");
     } catch (error) {
-      setApartments({ isLoading: false, isError: true, error });
+      toast.error("Failed to create apartment");
+      throw error;
+    } finally {
+      setCreateLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchApartments();
-  }, []);
+  const updateApartment = async (id: number, data: UpdateApartmentRequest) => {
+    try {
+      setUpdateLoading(true);
+      await apartmentsApi.updateApartment(id, data);
+      const updatedData = await apartmentsApi.getApartments(params);
+      setApartments((prev) => ({ ...prev, data: updatedData }));
+      toast.success("Apartment updated successfully");
+    } catch (error) {
+      toast.error("Failed to update apartment");
+      throw error;
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
 
-  return { apartments, fetchApartments };
+  const deleteApartment = async (id: number) => {
+    try {
+      setDeleteLoading(true);
+      await apartmentsApi.deleteApartment(id);
+      const updatedData = await apartmentsApi.getApartments(params);
+      setApartments((prev) => ({ ...prev, data: updatedData }));
+      toast.success("Apartment deleted successfully");
+    } catch (error) {
+      toast.error("Failed to delete apartment");
+      throw error;
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  return {
+    apartments,
+    createApartment: { mutateAsync: createApartment, isLoading: createLoading },
+    updateApartment: { mutateAsync: updateApartment, isLoading: updateLoading },
+    deleteApartment: { mutateAsync: deleteApartment, isLoading: deleteLoading },
+  };
 }

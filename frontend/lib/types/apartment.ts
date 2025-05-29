@@ -1,4 +1,4 @@
-export interface ApartmentResident {
+export interface Resident {
   id: number;
   fullName: string;
   relation: string;
@@ -7,40 +7,42 @@ export interface ApartmentResident {
 export interface Apartment {
   id: number;
   name: string;
-  residents: ApartmentResident[];
+  residents: Resident[];
+}
+
+export interface ApartmentsResponse {
+  content: Apartment[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      sorted: boolean;
+      empty: boolean;
+      unsorted: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
+  totalPages: number;
+  totalElements: number;
+  last: boolean;
+  size: number;
+  number: number;
+  sort: {
+    sorted: boolean;
+    empty: boolean;
+    unsorted: boolean;
+  };
+  numberOfElements: number;
+  first: boolean;
+  empty: boolean;
 }
 
 export interface CreateApartmentRequest {
   name: string;
 }
 
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  offset: number;
-  paged: boolean;
-  unpaged: boolean;
-}
-
-export interface ApartmentsResponse {
-  content: Apartment[];
-  pageable: PaginationMetadata;
-  last: boolean;
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  first: boolean;
-  numberOfElements: number;
-  empty: boolean;
+export interface UpdateApartmentRequest {
+  name: string;
 }
