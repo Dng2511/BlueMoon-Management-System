@@ -86,6 +86,7 @@ import { CreateFeeRequest, UpdateFeeRequest, Fee } from "@/lib/types/fee"
 import { FeeEditDrawer } from "./FeeEditDrawer"
 import { DeleteFeeDialog } from "./DeleteFeeDialog"
 import { BulkDeleteDialog } from "./BulkDeleteDialog"
+import { CreateFeeDialog } from "./CreateFeeDialog"
 
 export const schema = z.object({
   id: z.number(),
@@ -108,7 +109,7 @@ function DragHandle({ id }: { id: number }) {
       {...listeners}
       variant="ghost"
       size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
+      className="text-muted-foreground size-7 hover:bg-transparent cursor-grab active:cursor-grabbing"
     >
       <IconGripVertical className="text-muted-foreground size-3" />
       <span className="sr-only">Drag to reorder</span>
@@ -223,7 +224,7 @@ export function FeesTable({
     },
     {
       accessorKey: "amount",
-      header: () => <div className="w-full text-right">Amount (VND)</div>,
+      header: () => <div className="w-32 text-right">Amount (VND)</div>,
       cell: ({ row }) => (
         <div className="w-32 text-right font-medium">
           {new Intl.NumberFormat('vi-VN').format(row.original.amount)}
@@ -418,22 +419,10 @@ export function FeesTable({
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                if (onCreate) {
-                  // You might want to add a proper create dialog here
-                  console.log("Create new fee");
-                }
-              }}
-              disabled={isCreating}
-            >
-              <IconPlus />
-              <span className="hidden lg:inline">
-                {isCreating ? "Adding..." : "Add Fee"}
-              </span>
-            </Button>
+            <CreateFeeDialog
+              onSubmit={onCreate || (() => Promise.resolve())}
+              isLoading={isCreating}
+            />
           </div>
         </div>
         <TabsContent
