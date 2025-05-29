@@ -1,42 +1,30 @@
-import { Apartment, ApartmentsResponse } from "../types/apartment";
-import { API_ENDPOINTS } from "../config";
-import axiosInstance from "./axios";
+import { privateApi } from "./client";
+import {
+  Apartment,
+  ApartmentsResponse,
+  CreateApartmentRequest,
+} from "../types/apartment";
 
 interface GetApartmentsParams {
   page?: number;
   size?: number;
-  name?: string;
 }
 
 export const apartmentsApi = {
-  getAll: async (params?: GetApartmentsParams): Promise<ApartmentsResponse> => {
-    const response = await axiosInstance.get(API_ENDPOINTS.apartments, {
+  getApartments: async (params?: GetApartmentsParams) => {
+    const response = await privateApi.get<ApartmentsResponse>("/apartments", {
       params,
     });
     return response.data;
   },
 
-  getById: async (id: number): Promise<Apartment> => {
-    const response = await axiosInstance.get(
-      `${API_ENDPOINTS.apartments}/${id}`
-    );
+  getApartment: async (id: number) => {
+    const response = await privateApi.get<Apartment>(`/apartments/${id}`);
     return response.data;
   },
 
-  create: async (data: Omit<Apartment, "id">): Promise<Apartment> => {
-    const response = await axiosInstance.post(API_ENDPOINTS.apartments, data);
+  createApartment: async (data: CreateApartmentRequest) => {
+    const response = await privateApi.post<Apartment>("/apartments", data);
     return response.data;
-  },
-
-  update: async (id: number, data: Partial<Apartment>): Promise<Apartment> => {
-    const response = await axiosInstance.put(
-      `${API_ENDPOINTS.apartments}/${id}`,
-      data
-    );
-    return response.data;
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await axiosInstance.delete(`${API_ENDPOINTS.apartments}/${id}`);
   },
 };

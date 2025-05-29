@@ -1,3 +1,10 @@
+export type Relation = "OWNER" | "TENANT" | "RELATIVE" | "VISITOR";
+export type StayStatus =
+  | "PERMANENT_RESIDENCE"
+  | "TEMPORARY_RESIDENCE"
+  | "TEMPORARY_ABSENCE"
+  | "UNREGISTERED";
+
 export interface Apartment {
   id: number;
   name: string;
@@ -5,15 +12,31 @@ export interface Apartment {
 
 export interface Resident {
   id: number;
-  fullName: string | null;
+  fullName: string;
   dob: string;
   cccd: string;
   gender: string;
   occupation: string;
+  avatar: string;
   apartment: Apartment | null;
-  relation: string | null;
+  relation: Relation;
   phoneNumber: string;
+  stay_status: StayStatus;
 }
+
+export interface CreateResidentRequest {
+  fullName: string;
+  dob: string;
+  cccd: string;
+  gender: string;
+  occupation: string;
+  phoneNumber: string;
+  apartmentId: number;
+  relation: Relation;
+  stay_status: StayStatus;
+}
+
+export interface UpdateResidentRequest extends CreateResidentRequest {}
 
 export interface PaginationMetadata {
   pageNumber: number;
