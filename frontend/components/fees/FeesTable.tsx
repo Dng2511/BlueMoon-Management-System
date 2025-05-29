@@ -82,11 +82,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs"
-import { CreateFeeRequest, UpdateFeeRequest, Fee } from "@/lib/types/fee"
+import { CreateFeeRequest, UpdateFeeRequest, Fee, FeesResponse } from "@/lib/types/fee"
 import { FeeEditDrawer } from "./FeeEditDrawer"
 import { DeleteFeeDialog } from "./DeleteFeeDialog"
 import { BulkDeleteDialog } from "./BulkDeleteDialog"
 import { CreateFeeDialog } from "./CreateFeeDialog"
+import { usePagination } from "@/lib/hooks/use-pagination"
 
 export const schema = z.object({
   id: z.number(),
@@ -118,23 +119,24 @@ function DragHandle({ id }: { id: number }) {
 }
 
 export function FeesTable({
-  data: initialData,
+  data: feesResponse,
   onEdit,
   onDelete,
   onCreate,
   isCreating,
   isUpdating,
   isDeleting,
+  onPageChange,
 }: {
-  data: z.infer<typeof schema>[]
+  data: FeesResponse | undefined
   onEdit?: (id: number, data: UpdateFeeRequest) => Promise<void>
   onDelete?: (id: number) => Promise<void>
   onCreate?: (data: CreateFeeRequest) => Promise<void>
   isCreating?: boolean
   isUpdating?: boolean
   isDeleting?: boolean
+  onPageChange?: (page: number, pageSize: number) => void
 }) {
-  const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -142,17 +144,19 @@ export function FeesTable({
     []
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [pagination, setPagination] = React.useState({
-    pageIndex: 0,
-    pageSize: 10,
-  })
   const [editingItem, setEditingItem] = React.useState<z.infer<typeof schema> | null>(null)
   const [isBulkDeleting, setIsBulkDeleting] = React.useState(false)
 
-  // Update local data when initialData changes
-  React.useEffect(() => {
-    setData(initialData)
-  }, [initialData])
+  // Use pagination hook
+  const pagination = usePagination({
+    initialPage: (feesResponse?.number || 0) + 1, // Server uses 0-based, UI uses 1-based
+    initialPageSize: feesResponse?.size || 10,
+    onPageChange: (page, pageSize) => {
+      onPageChange?.(page - 1, pageSize) // Convert back to 0-based for server
+    },
+  })
+
+  const data = feesResponse?.content || []
 
   // Handle bulk delete
   const handleBulkDelete = async () => {
@@ -315,7 +319,6 @@ export function FeesTable({
       columnVisibility,
       rowSelection,
       columnFilters,
-      pagination,
     },
     getRowId: (row) => row.id.toString(),
     enableRowSelection: true,
@@ -323,23 +326,21 @@ export function FeesTable({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onPaginationChange: setPagination,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
+    manualPagination: true, // Enable manual pagination for server-side
+    pageCount: feesResponse?.totalPages || 0,
   })
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id)
-        const newIndex = dataIds.indexOf(over.id)
-        return arrayMove(data, oldIndex, newIndex)
-      })
+      // Note: For server-side pagination, you might want to handle drag reordering differently
+      // This is just for local reordering within the current page
+      console.log('Drag reordering not implemented for server-side pagination')
     }
   }
 
@@ -483,7 +484,7 @@ export function FeesTable({
           <div className="flex items-center justify-between px-4">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {table.getFilteredRowModel().rows.length} row(s) selected.
+              {feesResponse?.totalElements || 0} item(s) selected.
             </div>
             <div className="flex w-full items-center gap-8 lg:w-fit">
               <div className="hidden items-center gap-2 lg:flex">
@@ -491,14 +492,14 @@ export function FeesTable({
                   Rows per page
                 </Label>
                 <Select
-                  value={`${table.getState().pagination.pageSize}`}
+                  value={`${pagination.pageSize}`}
                   onValueChange={(value) => {
-                    table.setPageSize(Number(value))
+                    pagination.setPageSize(Number(value))
                   }}
                 >
                   <SelectTrigger size="sm" className="w-20" id="rows-per-page">
                     <SelectValue
-                      placeholder={table.getState().pagination.pageSize}
+                      placeholder={pagination.pageSize}
                     />
                   </SelectTrigger>
                   <SelectContent side="top">
@@ -511,15 +512,15 @@ export function FeesTable({
                 </Select>
               </div>
               <div className="flex w-fit items-center justify-center text-sm font-medium">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+                Page {pagination.currentPage} of{" "}
+                {feesResponse?.totalPages || 1}
               </div>
               <div className="ml-auto flex items-center gap-2 lg:ml-0">
                 <Button
                   variant="outline"
                   className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => table.setPageIndex(0)}
-                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => pagination.goToFirstPage()}
+                  disabled={!pagination.canGoPrevious()}
                 >
                   <span className="sr-only">Go to first page</span>
                   <IconChevronsLeft />
@@ -528,8 +529,8 @@ export function FeesTable({
                   variant="outline"
                   className="size-8"
                   size="icon"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
+                  onClick={() => pagination.previousPage()}
+                  disabled={!pagination.canGoPrevious()}
                 >
                   <span className="sr-only">Go to previous page</span>
                   <IconChevronLeft />
@@ -538,8 +539,8 @@ export function FeesTable({
                   variant="outline"
                   className="size-8"
                   size="icon"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
+                  onClick={() => pagination.nextPage()}
+                  disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
                 >
                   <span className="sr-only">Go to next page</span>
                   <IconChevronRight />
@@ -548,8 +549,8 @@ export function FeesTable({
                   variant="outline"
                   className="hidden size-8 lg:flex"
                   size="icon"
-                  onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                  disabled={!table.getCanNextPage()}
+                  onClick={() => pagination.goToLastPage(feesResponse?.totalPages || 1)}
+                  disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
                 >
                   <span className="sr-only">Go to last page</span>
                   <IconChevronsRight />
