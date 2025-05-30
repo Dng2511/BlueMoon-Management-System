@@ -46,5 +46,13 @@ public class FeeController {
         feeService.deleteFee(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getPayments(@PathVariable Long id,
+                                           @RequestParam(value = "page", defaultValue = "1") int page,
+                                           @RequestParam(value = "limit", defaultValue = "10") int limit) {
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        return ResponseEntity.ok(feeService.getPayments(pageable, id));
+    }
 }
 

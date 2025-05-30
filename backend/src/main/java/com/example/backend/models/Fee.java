@@ -13,6 +13,7 @@ import java.time.YearMonth;
 @Entity
 @Table(name = "fees")
 public class Fee extends BaseModel{
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String type; // Phí quản lý, gửi xe...
     private Integer amount;
     private Integer year;
