@@ -1,9 +1,11 @@
+name: bluemoon
+
 version: '3.8'
 
 services:
   sqlserver:
     image: "mcr.microsoft.com/mssql/server:2022-latest"
-    container_name: sql_server2022
+    container_name: bluemoon_sql_server
     ports:
       - "1435:1433"
     environment:
@@ -14,6 +16,7 @@ services:
 
   sql-init:
     image: mcr.microsoft.com/mssql-tools
+    container_name: bluemoon_sql_init
     depends_on:
       - sqlserver
     entrypoint: >
@@ -28,7 +31,7 @@ services:
 
   backend:
     build: .
-    container_name: backend
+    container_name: bluemoon_backend
     depends_on:
       - sqlserver
     environment:
@@ -39,8 +42,6 @@ services:
       - "8000:8000"
     networks:
       - backend-net
-  
-
 
 networks:
   backend-net:

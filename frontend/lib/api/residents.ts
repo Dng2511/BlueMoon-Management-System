@@ -1,42 +1,42 @@
-import { Resident, ResidentsResponse } from "../types/resident";
-import { API_ENDPOINTS } from "../config";
-import axiosInstance from "./axios";
+import { privateApi } from "./client";
+import {
+  CreateResidentRequest,
+  Resident,
+  ResidentsResponse,
+  UpdateResidentRequest,
+} from "../types/resident";
 
 interface GetResidentsParams {
+  search?: string;
+  gender?: string;
   page?: number;
   size?: number;
-  name?: string;
 }
 
 export const residentsApi = {
-  getAll: async (params?: GetResidentsParams): Promise<ResidentsResponse> => {
-    const response = await axiosInstance.get(API_ENDPOINTS.residents, {
+  getResidents: async (params?: GetResidentsParams) => {
+    const response = await privateApi.get<ResidentsResponse>("/residents", {
       params,
     });
     return response.data;
   },
 
-  getById: async (id: number): Promise<Resident> => {
-    const response = await axiosInstance.get(
-      `${API_ENDPOINTS.residents}/${id}`
-    );
+  getResident: async (id: number) => {
+    const response = await privateApi.get<Resident>(`/residents/${id}`);
     return response.data;
   },
 
-  create: async (data: Omit<Resident, "id">): Promise<Resident> => {
-    const response = await axiosInstance.post(API_ENDPOINTS.residents, data);
+  createResident: async (data: CreateResidentRequest) => {
+    const response = await privateApi.post<Resident>("/residents", data);
     return response.data;
   },
 
-  update: async (id: number, data: Partial<Resident>): Promise<Resident> => {
-    const response = await axiosInstance.put(
-      `${API_ENDPOINTS.residents}/${id}`,
-      data
-    );
+  updateResident: async (id: number, data: UpdateResidentRequest) => {
+    const response = await privateApi.put<Resident>(`/residents/${id}`, data);
     return response.data;
   },
 
-  delete: async (id: number): Promise<void> => {
-    await axiosInstance.delete(`${API_ENDPOINTS.residents}/${id}`);
+  deleteResident: async (id: number) => {
+    await privateApi.delete(`/residents/${id}`);
   },
 };

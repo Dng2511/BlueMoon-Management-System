@@ -1,5 +1,5 @@
 # Build
-FROM maven:3.9.9-amazoncorretto-21 AS build
+FROM maven:3.9.9-amazoncorretto-21-alpine AS build
 
 WORKDIR /app
 COPY pom.xml .
@@ -8,7 +8,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Create image
-FROM amazoncorretto:21.0.7
+FROM bellsoft/liberica-runtime-container:jre-21-slim-musl
 
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
