@@ -9,7 +9,9 @@ export const feesApi = {
   },
 
   getFeesByMonth: async (month: string) => {
-    const response = await privateApi.get<Fee[]>(`/fees/${month}`);
+    // month format is "YYYY-MM", we need to split it into year and month
+    const [year, monthNum] = month.split("-");
+    const response = await privateApi.get<Fee[]>(`/fees/${year}-${monthNum}`);
     return response.data;
   },
 
