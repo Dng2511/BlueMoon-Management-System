@@ -88,6 +88,9 @@ import { DeleteFeeDialog } from "./DeleteFeeDialog"
 import { BulkDeleteDialog } from "./BulkDeleteDialog"
 import { CreateFeeDialog } from "./CreateFeeDialog"
 import { usePagination } from "@/lib/hooks/use-pagination"
+import { useFeesByMonth } from "@/lib/hooks/use-fees"
+import { FeesTabAll } from "./FeesTabAll"
+import { FeesTabCurrentMonth } from "./FeesTabCurrentMonth"
 
 export const schema = z.object({
   id: z.number(),
@@ -146,7 +149,37 @@ export function FeesTable({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [editingItem, setEditingItem] = React.useState<z.infer<typeof schema> | null>(null)
   const [isBulkDeleting, setIsBulkDeleting] = React.useState(false)
+  const [activeTab, setActiveTab] = React.useState("outline")
+  
+  // Get current date and format it as YYYY-MM
+  const currentDate = new Date()
+  const currentMonth = currentDate.toISOString().slice(0, 7) // Format: YYYY-MM
+  
+  // Generate array of last 11 months (current month + 10 previous months)
+  const monthOptions = React.useMemo(() => {
+    const months = []
+    const seenMonths = new Set()
+    
+    for (let i = 0; i < 11; i++) {
+      const date = new Date()
+      date.setMonth(date.getMonth() - i)
+      const monthStr = date.toISOString().slice(0, 7) // Format: YYYY-MM
+      
+      // Skip if we've already seen this month
+      if (seenMonths.has(monthStr)) continue
+      
+      seenMonths.add(monthStr)
+      const displayStr = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      months.push({ value: monthStr, label: displayStr })
+    }
+    return months
+  }, [])
 
+  const [selectedMonth, setSelectedMonth] = React.useState(currentMonth)
+
+  // Use different data sources based on active tab
+  const feesByMonth = useFeesByMonth(selectedMonth)
+  
   // Use pagination hook
   const pagination = usePagination({
     initialPage: (feesResponse?.number || 0) + 1, // Server uses 0-based, UI uses 1-based
@@ -156,7 +189,13 @@ export function FeesTable({
     },
   })
 
-  const data = feesResponse?.content || []
+  // Choose data source based on active tab
+  const data = React.useMemo(() => {
+    if (activeTab === "past-performance") {
+      return feesByMonth.data || []
+    }
+    return feesResponse?.content || []
+  }, [activeTab, feesByMonth.data, feesResponse?.content])
 
   // Handle bulk delete
   const handleBulkDelete = async () => {
@@ -180,7 +219,7 @@ export function FeesTable({
     }
   }
 
-  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  const baseColumns: ColumnDef<z.infer<typeof schema>>[] = [
     {
       id: "drag",
       header: () => null,
@@ -299,6 +338,18 @@ export function FeesTable({
     },
   ]
 
+  // Create columns for different tabs
+  const columns = React.useMemo(() => {
+    if (activeTab === "past-performance") {
+      // Remove month column for past-performance tab
+      return baseColumns.filter(column => {
+        const columnWithAccessor = column as any
+        return columnWithAccessor.accessorKey !== "month"
+      })
+    }
+    return baseColumns
+  }, [activeTab, baseColumns])
+
   const sortableId = React.useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -331,8 +382,9 @@ export function FeesTable({
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-    manualPagination: true, // Enable manual pagination for server-side
-    pageCount: feesResponse?.totalPages || 0,
+    getPaginationRowModel: getPaginationRowModel(),
+    manualPagination: activeTab !== "past-performance", // Enable manual pagination for server-side, disable for past-performance
+    pageCount: activeTab === "past-performance" ? -1 : (feesResponse?.totalPages || 0),
   })
 
   function handleDragEnd(event: DragEndEvent) {
@@ -348,13 +400,15 @@ export function FeesTable({
     <div>
       <Tabs
         defaultValue="outline"
+        value={activeTab}
+        onValueChange={setActiveTab}
         className="w-full flex-col justify-start gap-6"
       >
         <div className="flex items-center justify-between px-4 lg:px-6">
           <Label htmlFor="view-selector" className="sr-only">
             View
           </Label>
-          <Select defaultValue="outline">
+          <Select defaultValue="outline" value={activeTab} onValueChange={setActiveTab}>
             <SelectTrigger
               className="flex w-fit @4xl/main:hidden"
               size="sm"
@@ -364,21 +418,40 @@ export function FeesTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="outline">All Fees</SelectItem>
-              <SelectItem value="past-performance">Monthly Summary</SelectItem>
-              <SelectItem value="key-personnel">Compulsory Fees</SelectItem>
-              <SelectItem value="focus-documents">Fee Reports</SelectItem>
+              <SelectItem value="past-performance">Current Month</SelectItem>
             </SelectContent>
           </Select>
-          <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-            <TabsTrigger value="outline">All Fees</TabsTrigger>
-            <TabsTrigger value="past-performance">
-              Monthly Summary <Badge variant="secondary">3</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="key-personnel">
-              Compulsory Fees <Badge variant="secondary">7</Badge>
-            </TabsTrigger>
-            <TabsTrigger value="focus-documents">Fee Reports</TabsTrigger>
-          </TabsList>
+          <div className="flex items-center gap-4 w-full">
+            <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
+              <TabsTrigger value="outline">All Fees</TabsTrigger>
+              <TabsTrigger value="past-performance">
+                Current Month <Badge variant="secondary">{feesByMonth.data?.length || 0}</Badge>
+              </TabsTrigger>
+              {/* <TabsTrigger value="key-personnel">
+                Compulsory Fees <Badge variant="secondary">7</Badge>
+              </TabsTrigger> */}
+              {/* <TabsTrigger value="focus-documents">Fee Reports</TabsTrigger> */}
+            </TabsList>
+            {activeTab === "past-performance" && (
+              <div className="flex items-center gap-2 ml-4">
+                <Label htmlFor="month-selector" className="text-sm font-medium">
+                  Select Month:
+                </Label>
+                <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <SelectTrigger className="w-40" size="sm" id="month-selector">
+                    <SelectValue placeholder="Select month" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             {table.getFilteredSelectedRowModel().rows.length > 0 && (
               <BulkDeleteDialog
@@ -430,141 +503,204 @@ export function FeesTable({
           value="outline"
           className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
         >
-          <div className="overflow-hidden rounded-lg border">
-            <DndContext
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis]}
-              onDragEnd={handleDragEnd}
-              sensors={sensors}
-              id={sortableId}
-            >
-              <Table>
-                <TableHeader className="bg-muted sticky top-0 z-10">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id} colSpan={header.colSpan}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </TableHead>
-                        )
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                  {table.getRowModel().rows?.length ? (
-                    <SortableContext
-                      items={dataIds}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {table.getRowModel().rows.map((row) => (
-                        <DraggableRow key={row.id} row={row} />
-                      ))}
-                    </SortableContext>
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </DndContext>
-          </div>
+          <FeesTabAll
+            columns={columns}
+            table={table}
+            dataIds={dataIds}
+            data={data}
+            handleDragEnd={handleDragEnd}
+          />
           <div className="flex items-center justify-between px-4">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {feesResponse?.totalElements || 0} item(s) selected.
+              {activeTab === "past-performance" ? data.length : (feesResponse?.totalElements || 0)} item(s) selected.
             </div>
             <div className="flex w-full items-center gap-8 lg:w-fit">
-              <div className="hidden items-center gap-2 lg:flex">
-                <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                  Rows per page
-                </Label>
-                <Select
-                  value={`${pagination.pageSize}`}
-                  onValueChange={(value) => {
-                    pagination.setPageSize(Number(value))
-                  }}
-                >
-                  <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                    <SelectValue
-                      placeholder={pagination.pageSize}
-                    />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    {[10, 20, 30, 40, 50].map((pageSize) => (
-                      <SelectItem key={pageSize} value={`${pageSize}`}>
-                        {pageSize}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex w-fit items-center justify-center text-sm font-medium">
-                Page {pagination.currentPage} of{" "}
-                {feesResponse?.totalPages || 1}
-              </div>
-              <div className="ml-auto flex items-center gap-2 lg:ml-0">
-                <Button
-                  variant="outline"
-                  className="hidden h-8 w-8 p-0 lg:flex"
-                  onClick={() => pagination.goToFirstPage()}
-                  disabled={!pagination.canGoPrevious()}
-                >
-                  <span className="sr-only">Go to first page</span>
-                  <IconChevronsLeft />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="size-8"
-                  size="icon"
-                  onClick={() => pagination.previousPage()}
-                  disabled={!pagination.canGoPrevious()}
-                >
-                  <span className="sr-only">Go to previous page</span>
-                  <IconChevronLeft />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="size-8"
-                  size="icon"
-                  onClick={() => pagination.nextPage()}
-                  disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
-                >
-                  <span className="sr-only">Go to next page</span>
-                  <IconChevronRight />
-                </Button>
-                <Button
-                  variant="outline"
-                  className="hidden size-8 lg:flex"
-                  size="icon"
-                  onClick={() => pagination.goToLastPage(feesResponse?.totalPages || 1)}
-                  disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
-                >
-                  <span className="sr-only">Go to last page</span>
-                  <IconChevronsRight />
-                </Button>
-              </div>
+              {activeTab !== "past-performance" && (
+                <div className="hidden items-center gap-2 lg:flex">
+                  <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                    Rows per page
+                  </Label>
+                  <Select
+                    value={`${pagination.pageSize}`}
+                    onValueChange={(value) => {
+                      pagination.setPageSize(Number(value))
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                      <SelectValue
+                        placeholder={pagination.pageSize}
+                      />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                      {[10, 20, 30, 40, 50].map((pageSize) => (
+                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                          {pageSize}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {activeTab !== "past-performance" && (
+                <>
+                  <div className="flex w-fit items-center justify-center text-sm font-medium">
+                    Page {pagination.currentPage} of{" "}
+                    {feesResponse?.totalPages || 1}
+                  </div>
+                  <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                    <Button
+                      variant="outline"
+                      className="hidden h-8 w-8 p-0 lg:flex"
+                      onClick={() => pagination.goToFirstPage()}
+                      disabled={!pagination.canGoPrevious()}
+                    >
+                      <span className="sr-only">Go to first page</span>
+                      <IconChevronsLeft />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="size-8"
+                      size="icon"
+                      onClick={() => pagination.previousPage()}
+                      disabled={!pagination.canGoPrevious()}
+                    >
+                      <span className="sr-only">Go to previous page</span>
+                      <IconChevronLeft />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="size-8"
+                      size="icon"
+                      onClick={() => pagination.nextPage()}
+                      disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
+                    >
+                      <span className="sr-only">Go to next page</span>
+                      <IconChevronRight />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="hidden size-8 lg:flex"
+                      size="icon"
+                      onClick={() => pagination.goToLastPage(feesResponse?.totalPages || 1)}
+                      disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
+                    >
+                      <span className="sr-only">Go to last page</span>
+                      <IconChevronsRight />
+                    </Button>
+                  </div>
+                </>
+              )}
+              {activeTab === "past-performance" && (
+                <div className="flex w-fit items-center justify-center text-sm font-medium">
+                  Showing {data.length} fees for {new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
         <TabsContent
           value="past-performance"
-          className="flex flex-col px-4 lg:px-6"
+          className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
         >
-          <div className="aspect-video w-full flex-1 rounded-lg border border-dashed flex items-center justify-center text-muted-foreground">
-            Monthly Summary - Coming Soon
+          <FeesTabCurrentMonth
+            columns={columns}
+            table={table}
+            dataIds={dataIds}
+            data={data}
+            handleDragEnd={handleDragEnd}
+            feesByMonth={feesByMonth}
+            selectedMonth={selectedMonth}
+            monthOptions={monthOptions}
+            setSelectedMonth={setSelectedMonth}
+          />
+          <div className="flex items-center justify-between px-4">
+            <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {activeTab === "past-performance" ? data.length : (feesResponse?.totalElements || 0)} item(s) selected.
+            </div>
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              {activeTab !== "past-performance" && (
+                <div className="hidden items-center gap-2 lg:flex">
+                  <Label htmlFor="rows-per-page" className="text-sm font-medium">
+                    Rows per page
+                  </Label>
+                  <Select
+                    value={`${pagination.pageSize}`}
+                    onValueChange={(value) => {
+                      pagination.setPageSize(Number(value))
+                    }}
+                  >
+                    <SelectTrigger size="sm" className="w-20" id="rows-per-page">
+                      <SelectValue
+                        placeholder={pagination.pageSize}
+                      />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                      {[10, 20, 30, 40, 50].map((pageSize) => (
+                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                          {pageSize}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {activeTab !== "past-performance" && (
+                <>
+                  <div className="flex w-fit items-center justify-center text-sm font-medium">
+                    Page {pagination.currentPage} of{" "}
+                    {feesResponse?.totalPages || 1}
+                  </div>
+                  <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                    <Button
+                      variant="outline"
+                      className="hidden h-8 w-8 p-0 lg:flex"
+                      onClick={() => pagination.goToFirstPage()}
+                      disabled={!pagination.canGoPrevious()}
+                    >
+                      <span className="sr-only">Go to first page</span>
+                      <IconChevronsLeft />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="size-8"
+                      size="icon"
+                      onClick={() => pagination.previousPage()}
+                      disabled={!pagination.canGoPrevious()}
+                    >
+                      <span className="sr-only">Go to previous page</span>
+                      <IconChevronLeft />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="size-8"
+                      size="icon"
+                      onClick={() => pagination.nextPage()}
+                      disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
+                    >
+                      <span className="sr-only">Go to next page</span>
+                      <IconChevronRight />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="hidden size-8 lg:flex"
+                      size="icon"
+                      onClick={() => pagination.goToLastPage(feesResponse?.totalPages || 1)}
+                      disabled={!pagination.canGoNext(feesResponse?.totalPages || 1)}
+                    >
+                      <span className="sr-only">Go to last page</span>
+                      <IconChevronsRight />
+                    </Button>
+                  </div>
+                </>
+              )}
+              {activeTab === "past-performance" && (
+                <div className="flex w-fit items-center justify-center text-sm font-medium">
+                  Showing {data.length} fees for {new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                </div>
+              )}
+            </div>
           </div>
         </TabsContent>
         <TabsContent value="key-personnel" className="flex flex-col px-4 lg:px-6">
