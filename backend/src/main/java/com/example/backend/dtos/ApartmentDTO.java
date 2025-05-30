@@ -19,6 +19,7 @@ public class ApartmentDTO {
 
 
 
+
     public static ApartmentDTO fromEntity(Apartment apartment) {
         ApartmentDTO dto = new ApartmentDTO();
         dto.id = apartment.getId();

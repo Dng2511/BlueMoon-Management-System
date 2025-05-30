@@ -14,6 +14,7 @@ import java.util.List;
 @Table(name = "residents")
 public class Resident extends BaseModel {
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String fullName;
     private LocalDate dob;
     private String cccd;

@@ -17,8 +17,8 @@ public class PaymentDTO {
     private ResPayment resident;
     private FeePayment fee;
     private Integer amountPaid;
-    @JsonProperty("payment_method")
-    private String paymentMethod;
+    @JsonProperty("status")
+    private String status;
     @JsonProperty("date_paid")
     private LocalDate datePaid;
 
@@ -29,13 +29,10 @@ public class PaymentDTO {
                 new ResPayment(payment.getResident()),
                 new FeePayment(payment.getFee()),
                 payment.getAmountPaid(),
-                payment.getPaymentMethod(),
+                payment.getStatus(),
                 payment.getDatePaid()
-
         );
     }
-
-
 
 
     @Getter
@@ -43,10 +40,12 @@ public class PaymentDTO {
     static class ResPayment{
         private Long id;
         private String fullName;
+        private String apartment;
 
         public ResPayment(Resident resident){
             this.id = resident.getId();
             this.fullName = resident.getFullName();
+            this.apartment = resident.getApartment().getName();
         }
     }
 
