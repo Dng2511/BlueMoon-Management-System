@@ -52,7 +52,9 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setPhoneNumber(data.get("phoneNumber").asText());
         resident.setRelation(Relation.valueOf(data.get("relation").asText().toUpperCase()));
         resident.setStayStatus(StayStatus.valueOf(data.get("stay_status").asText().toUpperCase()));
-        Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
+        Apartment apartment = apartmentRepository.findById(data.get("apartmentId").asLong()).orElseThrow(
+                () -> new IllegalArgumentException("apartment not found")
+        );
         resident.setApartment(apartment);
         resident.setAvatar("default.jpg");
         return ResidentDTO.fromEntity(residentRepository.save(resident));
