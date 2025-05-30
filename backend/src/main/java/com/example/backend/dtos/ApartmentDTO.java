@@ -15,39 +15,11 @@ import java.util.stream.Collectors;
 public class ApartmentDTO {
     private Long id;
     private String name;
-    private List<ApaResident> residents;
-
-
-
 
     public static ApartmentDTO fromEntity(Apartment apartment) {
         ApartmentDTO dto = new ApartmentDTO();
-        dto.id = apartment.getId();
-        dto.name = apartment.getName();
-
-        if (apartment.getResidents() != null) {
-            dto.residents = apartment.getResidents()
-                    .stream()
-                    .map(ApaResident::new)
-                    .collect(Collectors.toList());
-        } else {
-            dto.residents = new ArrayList<>();
-        }
-
+        dto.setId(apartment.getId());
+        dto.setName(apartment.getName());
         return dto;
-    }
-
-    @Getter
-    @Setter
-    static class ApaResident{
-        private Long id;
-        private String fullName;
-        private String relation;
-
-        public ApaResident(Resident resident){
-            this.id = resident.getId();
-            this.fullName = resident.getFullName();
-            this.relation = resident.getRelation().name();
-        }
     }
 }

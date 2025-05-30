@@ -1,6 +1,7 @@
 package com.example.backend.services;
 
 import com.example.backend.dtos.ApartmentDTO;
+import com.example.backend.dtos.subDTO.ApartmentDetailDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,5 +16,7 @@ public interface ApartmentService {
     public ApartmentDTO updateApartment(JsonNode data, Long id);
 
     public void deleteApartment(Long id);
+
+    ApartmentDetailDTO getApartmentDetail(Long id);
 }
 
