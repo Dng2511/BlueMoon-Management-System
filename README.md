@@ -42,7 +42,7 @@ docker-compose -f bluemoon.yml up --build
 
 ### 🧩 Key Features
 - Manage resident & apartment info
-- Bill management (electricity, water, services)
+- Bill management
 - Notifications and feedback system
 - Maintenance request management
 - Facility booking
