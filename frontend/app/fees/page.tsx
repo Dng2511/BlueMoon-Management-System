@@ -7,9 +7,18 @@ import {
   CreateFeeRequest,
   UpdateFeeRequest,
 } from "@/lib/types/fee";
+import { usePagination } from "@/lib/hooks/use-pagination";
 
 export default function FeesPage() {
-  const { fees, createFee, updateFee, deleteFee } = useFees();
+  const pagination = usePagination({
+    initialPage: 1,
+    initialPageSize: 10,
+  });
+
+  const { fees, createFee, updateFee, deleteFee } = useFees({
+    page: pagination.currentPage,
+    limit: pagination.pageSize,
+  });
 
   const handleCreate = async (data: CreateFeeRequest) => {
     try {
@@ -32,6 +41,13 @@ export default function FeesPage() {
       await deleteFee.mutateAsync(id);
     } catch (error) {
       // Error is already handled by the hook with toast
+    }
+  };
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    pagination.setPage(page + 1); // Convert from 0-based to 1-based
+    if (pageSize !== pagination.pageSize) {
+      pagination.setPageSize(pageSize);
     }
   };
 
@@ -79,16 +95,17 @@ export default function FeesPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+    <div className="flex flex-col gap-4 py-6 md:gap-6 px-12">
       <div className="px-4 lg:px-6">
         <h1 className="text-3xl font-bold">Fees Management</h1>
       </div>
 
       <FeesTable
-        data={fees.data?.content || []}
+        data={fees.data}
         onEdit={handleUpdate}
         onDelete={handleDelete}
         onCreate={handleCreate}
+        onPageChange={handlePageChange}
         isCreating={createFee.isPending}
         isUpdating={updateFee.isPending}
         isDeleting={deleteFee.isPending}

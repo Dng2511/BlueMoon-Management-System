@@ -31,5 +31,5 @@ export interface PageableResponse<T> {
 // Common API request params
 export interface PaginationParams {
   page?: number;
-  size?: number;
+  limit?: number;
 } 
