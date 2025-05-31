@@ -2,9 +2,9 @@ package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.ResidentDTO;
 import com.example.backend.models.Apartment;
-import com.example.backend.models.Relation;
+import com.example.backend.models.enums.Relation;
 import com.example.backend.models.Resident;
-import com.example.backend.models.StayStatus;
+import com.example.backend.models.enums.StayStatus;
 import com.example.backend.repositories.ApartmentRepository;
 import com.example.backend.repositories.ResidentRepository;
 import com.example.backend.services.ResidentService;

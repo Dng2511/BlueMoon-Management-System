@@ -1,7 +1,7 @@
 package com.example.backend.repositories;
 
 import com.example.backend.models.Resident;
-import com.example.backend.models.StayStatus;
+import com.example.backend.models.enums.StayStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
