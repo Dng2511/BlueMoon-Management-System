@@ -2,6 +2,7 @@ package com.example.backend.controllers;
 
 
 import com.example.backend.dtos.ApartmentDTO;
+import com.example.backend.dtos.subDTO.ApartmentDetailDTO;
 import com.example.backend.services.ApartmentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -45,4 +46,9 @@ public class ApartmentController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ApartmentDetailDTO> getApartmentDetail(@PathVariable Long id) {
+        ApartmentDetailDTO dto = apartmentService.getApartmentDetail(id);
+        return ResponseEntity.ok(dto);
+    }
 }

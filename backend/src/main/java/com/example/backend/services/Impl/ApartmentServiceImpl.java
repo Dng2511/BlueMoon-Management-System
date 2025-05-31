@@ -2,6 +2,7 @@ package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.ApartmentDTO;
 import com.example.backend.dtos.ResidentDTO;
+import com.example.backend.dtos.subDTO.ApartmentDetailDTO;
 import com.example.backend.models.Apartment;
 import com.example.backend.repositories.ApartmentRepository;
 import com.example.backend.services.ApartmentService;
@@ -46,5 +47,13 @@ public class ApartmentServiceImpl implements ApartmentService {
     @Override
     public void deleteApartment(Long id) {
         apartmentRepository.deleteById(id);
+    }
+
+    @Override
+    public ApartmentDetailDTO getApartmentDetail(Long id) {
+        Apartment apartment = apartmentRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Apartment not found"));
+
+        return ApartmentDetailDTO.fromEntity(apartment);
     }
 }
