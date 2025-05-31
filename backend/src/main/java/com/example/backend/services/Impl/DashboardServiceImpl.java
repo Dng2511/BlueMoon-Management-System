@@ -1,7 +1,7 @@
 package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.DashboardDTO;
-import com.example.backend.models.StayStatus;
+import com.example.backend.models.enums.StayStatus;
 import com.example.backend.repositories.ApartmentRepository;
 import com.example.backend.repositories.ResidentRepository;
 import com.example.backend.services.DashboardService;

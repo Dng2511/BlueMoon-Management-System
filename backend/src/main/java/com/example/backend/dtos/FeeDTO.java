@@ -1,6 +1,7 @@
 package com.example.backend.dtos;
 
 import com.example.backend.models.Fee;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,14 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({
+        "id",
+        "type",
+        "amount",
+        "month",
+        "description",
+        "compulsory"
+})
 public class FeeDTO {
     private Long id;
     private String type;

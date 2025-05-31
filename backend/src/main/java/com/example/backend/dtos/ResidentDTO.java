@@ -12,7 +12,6 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class ResidentDTO {
     private Long id;
     private String fullName;

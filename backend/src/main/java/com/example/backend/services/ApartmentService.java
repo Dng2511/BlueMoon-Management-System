@@ -2,12 +2,13 @@ package com.example.backend.services;
 
 import com.example.backend.dtos.ApartmentDTO;
 import com.example.backend.dtos.subDTO.ApartmentDetailDTO;
+import com.example.backend.dtos.subDTO.ApartmentSummaryDTO;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface ApartmentService {
-    public Page<ApartmentDTO> getAllApartments(Pageable pageable);
+    public Page<ApartmentSummaryDTO> getAllApartments(Pageable pageable);
 
     public ApartmentDTO getApartment(Long id);
 
