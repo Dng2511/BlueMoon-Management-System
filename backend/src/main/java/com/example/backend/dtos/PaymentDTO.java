@@ -4,6 +4,7 @@ import com.example.backend.models.Fee;
 import com.example.backend.models.Payment;
 import com.example.backend.models.Resident;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -11,6 +12,15 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({
+        "id",
+        "quantity",
+        "resident",
+        "fee",
+        "amountPaid",
+        "status",
+        "date_paid"
+})
 public class PaymentDTO {
     private Long id;
     private Integer quantity;

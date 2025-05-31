@@ -3,6 +3,7 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.ApartmentDTO;
 import com.example.backend.dtos.subDTO.ApartmentDetailDTO;
+import com.example.backend.dtos.subDTO.ApartmentSummaryDTO;
 import com.example.backend.services.ApartmentService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +23,8 @@ public class ApartmentController {
 
 
     @GetMapping
-    public ResponseEntity<Page<ApartmentDTO>> findAll(@RequestParam(value = "page", defaultValue = "1") int page,
-                                                      @RequestParam(value = "limit", defaultValue = "20") int limit) {
+    public ResponseEntity<Page<ApartmentSummaryDTO>> findAll(@RequestParam(value = "page", defaultValue = "1") int page,
+                                                             @RequestParam(value = "limit", defaultValue = "20") int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit);
         return ResponseEntity.ok(apartmentService.getAllApartments(pageable));
     }
