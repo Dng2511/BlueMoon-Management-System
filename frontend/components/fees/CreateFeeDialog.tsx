@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/select";
 import { CreateFeeRequest } from "@/lib/types/fee";
 import { IconPlus } from "@tabler/icons-react";
+import { MonthSelect } from "@/components/ui/month-select";
 
 const formSchema = z.object({
   type: z.string().min(2, "Fee type must be at least 2 characters"),
@@ -136,9 +137,11 @@ export function CreateFeeDialog({
                     <FormItem>
                       <FormLabel>Month</FormLabel>
                       <FormControl>
-                        <Input
-                          type="month"
-                          {...field}
+                        <MonthSelect
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          id="month"
+                          className="w-full"
                         />
                       </FormControl>
                       <FormMessage />

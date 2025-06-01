@@ -31,6 +31,7 @@ import {
   IconLayoutColumns,
   IconPlus,
   IconTrash,
+  IconLoader,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -47,7 +48,9 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
+import { ArrowUpDown } from "lucide-react"
 import { z } from "zod"
+import { useRouter } from "next/navigation"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -84,8 +87,7 @@ import {
 } from "@/components/ui/tabs"
 import { CreateFeeRequest, UpdateFeeRequest, Fee, FeesResponse } from "@/lib/types/fee"
 import { FeeEditDrawer } from "./FeeEditDrawer"
-import { DeleteFeeDialog } from "./DeleteFeeDialog"
-import { BulkDeleteDialog } from "./BulkDeleteDialog"
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog"
 import { CreateFeeDialog } from "./CreateFeeDialog"
 import { usePagination } from "@/lib/hooks/use-pagination"
 import { useFeesByMonth } from "@/lib/hooks/use-fees"
@@ -140,6 +142,7 @@ export function FeesTable({
   isDeleting?: boolean
   onPageChange?: (page: number, pageSize: number) => void
 }) {
+  const router = useRouter()
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -190,12 +193,19 @@ export function FeesTable({
   })
 
   // Choose data source based on active tab
-  const data = React.useMemo(() => {
-    if (activeTab === "past-performance") {
+  const initialData = React.useMemo(() => {
+    if (activeTab === "monthly-fees") {
       return feesByMonth.data || []
     }
     return feesResponse?.content || []
   }, [activeTab, feesByMonth.data, feesResponse?.content])
+
+  const [data, setData] = React.useState(initialData)
+
+  // Reset data when initialData changes (e.g., on tab/page change)
+  React.useEffect(() => {
+    setData(initialData)
+  }, [initialData])
 
   // Handle bulk delete
   const handleBulkDelete = async () => {
@@ -258,7 +268,17 @@ export function FeesTable({
         <Button 
           variant="link" 
           className="text-foreground w-fit px-0 text-left"
-          onClick={() => setEditingItem(row.original)}
+          onClick={() => {
+            const feeData = row.original;
+            try {
+              const feeDetailsString = encodeURIComponent(JSON.stringify(feeData));
+              router.push(`/fees/${feeData.id}?feeDetails=${feeDetailsString}`);
+            } catch (error) {
+              console.error("Failed to stringify fee data for navigation:", error);
+              // Fallback navigation without feeDetails if stringification fails
+              router.push(`/fees/${feeData.id}`);
+            }
+          }}
         >
           {row.original.type}
         </Button>
@@ -267,18 +287,43 @@ export function FeesTable({
     },
     {
       accessorKey: "amount",
-      header: () => <div className="w-32 text-right">Amount (VND)</div>,
+      header: ({ column }) => (
+        <div className="w-32 text-center">
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto font-medium hover:bg-transparent"
+          >
+            Amount (VND)
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      ),
       cell: ({ row }) => (
         <div className="w-32 text-right font-medium">
-          {new Intl.NumberFormat('vi-VN').format(row.original.amount)}
+          {      new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+      }).format(row.original.amount)}
         </div>
       ),
     },
     {
       accessorKey: "month",
-      header: "Month",
+      header: ({ column }) => (
+        <div className="w-24 text-center">
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="h-auto font-medium"
+        >
+          Month
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+        </div>
+      ),
       cell: ({ row }) => (
-        <div className="w-24">
+        <div className="w-24 text-center">
           {row.original.month}
         </div>
       ),
@@ -324,13 +369,25 @@ export function FeesTable({
             <DropdownMenuItem>Make a copy</DropdownMenuItem>
             <DropdownMenuItem>Favorite</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DeleteFeeDialog
+            <ConfirmationDialog
+              trigger={
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  Delete
+                </DropdownMenuItem>
+              }
+              title="Are you sure?"
+              description="This action cannot be undone. This will permanently delete the Fee from the system."
+              confirmText={isDeleting ? "Deleting..." : "Delete"}
               onConfirm={() => {
                 if (onDelete) {
                   onDelete(row.original.id);
                 }
               }}
-              isLoading={isDeleting}
+              isConfirming={isDeleting}
+              confirmButtonVariant="destructive"
             />
           </DropdownMenuContent>
         </DropdownMenu>
@@ -340,8 +397,8 @@ export function FeesTable({
 
   // Create columns for different tabs
   const columns = React.useMemo(() => {
-    if (activeTab === "past-performance") {
-      // Remove month column for past-performance tab
+    if (activeTab === "monthly-fees") {
+      // Remove month column for monthly-fees tab
       return baseColumns.filter(column => {
         const columnWithAccessor = column as any
         return columnWithAccessor.accessorKey !== "month"
@@ -383,16 +440,18 @@ export function FeesTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: activeTab !== "past-performance", // Enable manual pagination for server-side, disable for past-performance
-    pageCount: activeTab === "past-performance" ? -1 : (feesResponse?.totalPages || 0),
+    manualPagination: activeTab !== "monthly-fees", // Enable manual pagination for server-side, disable for monthly-fees
+    pageCount: activeTab === "monthly-fees" ? -1 : (feesResponse?.totalPages || 0),
   })
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event
     if (active && over && active.id !== over.id) {
-      // Note: For server-side pagination, you might want to handle drag reordering differently
-      // This is just for local reordering within the current page
-      console.log('Drag reordering not implemented for server-side pagination')
+      setData((prevData) => {
+        const oldIndex = prevData.findIndex((item) => item.id === active.id)
+        const newIndex = prevData.findIndex((item) => item.id === over.id)
+        return arrayMove(prevData, oldIndex, newIndex)
+      })
     }
   }
 
@@ -418,13 +477,13 @@ export function FeesTable({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="outline">All Fees</SelectItem>
-              <SelectItem value="past-performance">Current Month</SelectItem>
+              <SelectItem value="monthly-fees">Current Month</SelectItem>
             </SelectContent>
           </Select>
           <div className="flex items-center gap-4 w-full">
             <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
               <TabsTrigger value="outline">All Fees</TabsTrigger>
-              <TabsTrigger value="past-performance">
+              <TabsTrigger value="monthly-fees">
                 Current Month <Badge variant="secondary">{feesByMonth.data?.length || 0}</Badge>
               </TabsTrigger>
               {/* <TabsTrigger value="key-personnel">
@@ -432,7 +491,7 @@ export function FeesTable({
               </TabsTrigger> */}
               {/* <TabsTrigger value="focus-documents">Fee Reports</TabsTrigger> */}
             </TabsList>
-            {activeTab === "past-performance" && (
+            {activeTab === "monthly-fees" && (
               <div className="flex items-center gap-2 ml-4">
                 <Label htmlFor="month-selector" className="text-sm font-medium">
                   Select Month:
@@ -454,10 +513,34 @@ export function FeesTable({
           </div>
           <div className="flex items-center gap-2">
             {table.getFilteredSelectedRowModel().rows.length > 0 && (
-              <BulkDeleteDialog
-                selectedCount={table.getFilteredSelectedRowModel().rows.length}
+              <ConfirmationDialog
+                trigger={
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    disabled={isBulkDeleting}
+                  >
+                    {isBulkDeleting ? (
+                      <IconLoader className="size-4 animate-spin" />
+                    ) : (
+                      <IconTrash className="size-4" />
+                    )}
+                    {isBulkDeleting
+                      ? `Deleting ${table.getFilteredSelectedRowModel().rows.length} fees...`
+                      : `Delete ${table.getFilteredSelectedRowModel().rows.length} selected`}
+                  </Button>
+                }
+                title={`Delete ${table.getFilteredSelectedRowModel().rows.length} fees?`}
+                description={`This action cannot be undone. This will permanently delete ${
+                  table.getFilteredSelectedRowModel().rows.length
+                } ${
+                  table.getFilteredSelectedRowModel().rows.length === 1 ? "fee" : "fees"
+                } from the system.`}
+                confirmText={isBulkDeleting ? "Deleting..." : "Delete All"}
                 onConfirm={handleBulkDelete}
-                isLoading={isBulkDeleting}
+                isConfirming={isBulkDeleting}
+                confirmButtonVariant="destructive"
               />
             )}
             <DropdownMenu>
@@ -513,10 +596,10 @@ export function FeesTable({
           <div className="flex items-center justify-between px-4">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {activeTab === "past-performance" ? data.length : (feesResponse?.totalElements || 0)} item(s) selected.
+              {activeTab === "monthly-fees" ? data.length : (feesResponse?.totalElements || 0)} item(s) selected.
             </div>
             <div className="flex w-full items-center gap-8 lg:w-fit">
-              {activeTab !== "past-performance" && (
+              {activeTab !== "monthly-fees" && (
                 <div className="hidden items-center gap-2 lg:flex">
                   <Label htmlFor="rows-per-page" className="text-sm font-medium">
                     Rows per page
@@ -542,7 +625,7 @@ export function FeesTable({
                   </Select>
                 </div>
               )}
-              {activeTab !== "past-performance" && (
+              {activeTab !== "monthly-fees" && (
                 <>
                   <div className="flex w-fit items-center justify-center text-sm font-medium">
                     Page {pagination.currentPage} of{" "}
@@ -591,7 +674,7 @@ export function FeesTable({
                   </div>
                 </>
               )}
-              {activeTab === "past-performance" && (
+              {activeTab === "monthly-fees" && (
                 <div className="flex w-fit items-center justify-center text-sm font-medium">
                   Showing {data.length} fees for {new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
@@ -600,7 +683,7 @@ export function FeesTable({
           </div>
         </TabsContent>
         <TabsContent
-          value="past-performance"
+          value="monthly-fees"
           className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
         >
           <FeesTabCurrentMonth
@@ -617,10 +700,10 @@ export function FeesTable({
           <div className="flex items-center justify-between px-4">
             <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
               {table.getFilteredSelectedRowModel().rows.length} of{" "}
-              {activeTab === "past-performance" ? data.length : (feesResponse?.totalElements || 0)} item(s) selected.
+              {activeTab === "monthly-fees" ? data.length : (feesResponse?.totalElements || 0)} item(s) selected.
             </div>
             <div className="flex w-full items-center gap-8 lg:w-fit">
-              {activeTab !== "past-performance" && (
+              {activeTab !== "monthly-fees" && (
                 <div className="hidden items-center gap-2 lg:flex">
                   <Label htmlFor="rows-per-page" className="text-sm font-medium">
                     Rows per page
@@ -646,7 +729,7 @@ export function FeesTable({
                   </Select>
                 </div>
               )}
-              {activeTab !== "past-performance" && (
+              {activeTab !== "monthly-fees" && (
                 <>
                   <div className="flex w-fit items-center justify-center text-sm font-medium">
                     Page {pagination.currentPage} of{" "}
@@ -695,7 +778,7 @@ export function FeesTable({
                   </div>
                 </>
               )}
-              {activeTab === "past-performance" && (
+              {activeTab === "monthly-fees" && (
                 <div className="flex w-fit items-center justify-center text-sm font-medium">
                   Showing {data.length} fees for {new Date(selectedMonth).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </div>
@@ -734,29 +817,3 @@ export function FeesTable({
     </div>
   )
 }
-
-function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.id,
-  })
-
-  return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  )
-}
-

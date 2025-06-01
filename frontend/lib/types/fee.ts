@@ -1,4 +1,5 @@
 import { PageableResponse } from "./common";
+import { Payment } from "./payment";
 
 export interface Fee {
   id: number;
@@ -7,6 +8,7 @@ export interface Fee {
   month: string;
   description: string;
   compulsory: boolean;
+  payments?: Payment[];
 }
 
 export interface CreateFeeRequest {
