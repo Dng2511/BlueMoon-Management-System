@@ -1,3 +1,120 @@
+"use client";
+
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Calendar, DollarSign, FileText, Tag, Check, X, Users, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { notFound } from "next/navigation";
+import React from "react";
+import { PaymentsTable } from "@/components/payments/PaymentsTable";
+import { usePagination } from "@/lib/hooks/use-pagination";
+import { usePayments } from "@/lib/hooks/use-payments";
+import { useResidents } from "@/lib/hooks/use-residents";
+import { useFees } from "@/lib/hooks/use-fees";
+import { CreatePaymentRequest } from "@/lib/types/payment";
+
 export default function PaymentsPage() {
-  return <div>Payments Management Page</div>;
+  const router = useRouter();
+
+  const pagination = usePagination({
+    initialPage: 1,
+    initialPageSize: 10,
+  });
+
+  const { residents } = useResidents();
+  const { fees } = useFees();
+  
+  const residentsList = residents?.data?.content?.map(resident => ({
+    id: resident.id,
+    fullName: resident.fullName,
+    apartment: resident.apartment?.name
+  })) || [];
+
+  const feesList = fees?.data?.content?.map(fee => ({
+    id: fee.id,
+    type: fee.type
+  })) || [];
+
+  const { 
+    deletePayment, 
+    bulkDeletePayments,
+    createPayment,
+    payments: paymentsResponse,
+  } = usePayments({
+    page: pagination.currentPage,
+    limit: pagination.pageSize,
+  });
+
+  if (paymentsResponse.isLoading) {
+    return (
+      <div className="flex flex-col gap-6 py-6 px-12">
+        <Skeleton className="h-8 w-full mb-4" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
+  }
+
+  const handlePageChange = (page: number, pageSize: number) => {
+    pagination.setPage(page + 1);
+    if (pageSize !== pagination.pageSize) {
+      pagination.setPageSize(pageSize);
+    }
+  };
+
+  const handleDeletePayment = async (id: number) => {
+    await deletePayment.mutateAsync(id);
+  };
+
+  const handleBulkDeletePayments = async (ids: number[]) => {
+    await bulkDeletePayments.mutateAsync(ids);
+  };
+
+  const handleCreatePayment = async (data: CreatePaymentRequest) => {
+    await createPayment.mutateAsync(data);
+  };
+
+  if (!paymentsResponse.data) {
+    return (
+      <div className="flex flex-col gap-6 py-6 px-12">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.back()}
+            className="flex items-center gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-6 text-destructive">
+          <h2 className="text-lg font-semibold mb-2">Error Loading Payments</h2>
+          <p>Could not load payments data.</p>
+        </div>
+      </div>
+    );
+  }
+
+
+  return (
+    <div className="flex flex-col gap-4 py-6 md:gap-6 px-12">
+      <div className="px-4 lg:px-6">
+        <h1 className="text-3xl font-bold">Payments Management</h1>
+      </div>
+
+      <PaymentsTable
+        paymentsResponse={paymentsResponse.data}
+        onPageChange={handlePageChange}
+        onDelete={handleDeletePayment}
+        onBulkDelete={handleBulkDeletePayments}
+        onCreate={handleCreatePayment}
+        isDeleting={deletePayment.isPending || bulkDeletePayments.isPending}
+        isCreating={createPayment.isPending}
+        residents={residentsList}
+        fees={feesList}
+      />
+    </div>
+  );
 }

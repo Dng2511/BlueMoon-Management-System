@@ -1,6 +1,7 @@
 import { privateApi } from "./client";
 import { CreateFeeRequest, Fee, FeesResponse, UpdateFeeRequest } from "../types/fee";
 import { PaginationParams } from "../types/common";
+import { PaymentsResponse } from "../types/payment";
 
 export const feesApi = {
   getFees: async (params?: PaginationParams) => {
@@ -8,10 +9,15 @@ export const feesApi = {
     return response.data;
   },
 
+  getFee: async (id: number, params?: PaginationParams) => {
+    const response = await privateApi.get<PaymentsResponse>(`/fees/${id}`, { params });
+    return response.data;
+  },
+
   getFeesByMonth: async (month: string) => {
     // month format is "YYYY-MM", we need to split it into year and month
     const [year, monthNum] = month.split("-");
-    const response = await privateApi.get<Fee[]>(`/fees/${year}-${monthNum}`);
+    const response = await privateApi.get<Fee[]>(`/fees/month/${year}-${monthNum}`);
     return response.data;
   },
 

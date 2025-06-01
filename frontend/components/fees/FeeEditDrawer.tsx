@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { UpdateFeeRequest } from "@/lib/types/fee"
+import { MonthSelect } from "@/components/ui/month-select"
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -97,6 +98,22 @@ export function FeeEditDrawer({
     compulsory: item.compulsory,
   })
 
+  // Generate array of last 11 months (current month + 10 previous months)
+  const monthOptions = React.useMemo(() => {
+    const months = []
+    const seenMonths = new Set()
+    for (let i = 0; i < 11; i++) {
+      const date = new Date()
+      date.setMonth(date.getMonth() - i)
+      const monthStr = date.toISOString().slice(0, 7) // Format: YYYY-MM
+      if (seenMonths.has(monthStr)) continue
+      seenMonths.add(monthStr)
+      const displayStr = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+      months.push({ value: monthStr, label: displayStr })
+    }
+    return months
+  }, [])
+
   // Reset form when item changes or drawer opens
   React.useEffect(() => {
     if (isOpen) {
@@ -136,7 +153,7 @@ export function FeeEditDrawer({
   )
 
   return (
-    <Drawer modal={false} direction={isMobile ? "bottom" : "right"} open={isOpen} onOpenChange={setIsOpen}>
+    <Drawer direction={isMobile ? "bottom" : "right"} open={isOpen} onOpenChange={setIsOpen}>
       {trigger !== null && (
         <DrawerTrigger asChild>
           {trigger || defaultTrigger}
@@ -230,12 +247,11 @@ export function FeeEditDrawer({
               </div>
               <div className="flex flex-col gap-3">
                 <Label htmlFor="month">Month</Label>
-                <Input 
-                  id="month" 
-                  type="month" 
+                <MonthSelect
                   value={formData.month}
-                  onChange={(e) => setFormData(prev => ({ ...prev, month: e.target.value }))}
-                  required
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, month: value }))}
+                  id="month"
+                  className="w-full"
                 />
               </div>
             </div>
@@ -274,12 +290,13 @@ export function FeeEditDrawer({
             {isUpdating && <IconLoader className="size-4 animate-spin" />}
             {isUpdating ? "Updating..." : "Update Fee"}
           </Button>
+          <DrawerClose asChild>
           <Button 
             variant="outline"
-            onClick={() => setIsOpen(false)}
           >
             Cancel
           </Button>
+          </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

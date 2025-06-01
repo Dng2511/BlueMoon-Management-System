@@ -26,8 +26,9 @@ export function useFees(params?: PaginationParams) {
   const updateFee = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateFeeRequest }) => 
       feesApi.updateFee(id, data),
-    onSuccess: () => {
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["fees"] });
+      queryClient.invalidateQueries({ queryKey: ["fee", id] });
       toast.success("Fee updated successfully");
     },
     onError: (error: any) => {
@@ -37,8 +38,9 @@ export function useFees(params?: PaginationParams) {
 
   const deleteFee = useMutation({
     mutationFn: (id: number) => feesApi.deleteFee(id),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["fees"] });
+      queryClient.removeQueries({ queryKey: ["fee", id] });
       toast.success("Fee deleted successfully");
     },
     onError: (error: any) => {
@@ -58,5 +60,13 @@ export function useFeesByMonth(month: string) {
   return useQuery({
     queryKey: ["fees", month],
     queryFn: () => feesApi.getFeesByMonth(month),
+  });
+}
+
+export function useFee(id: number, params?: PaginationParams) {
+  return useQuery({
+    queryKey: ["fee", id, params],
+    queryFn: () => feesApi.getFee(id, params),
+    enabled: !!id,
   });
 }

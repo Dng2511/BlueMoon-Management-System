@@ -120,14 +120,30 @@
   }
 }
 
-/* Prevent Radix UI components (DropdownMenu, Dialog, etc.) from adding margin-right to body */
+/* Comprehensive fix for Radix UI components adding margin/padding to body */
+/* Prevents all types of body modifications from dropdowns, dialogs, etc. */
 body,
+body[style*="margin"],
 body[style*="margin-right"],
+body[style*="padding"],
+body[style*="padding-right"],
 body[style] {
+  margin: 0 !important;
   margin-right: 0 !important;
+  padding-right: 0 !important;
 }
 
-/* Also prevent any padding-right that might be added */
-body[style*="padding-right"] {
+body[data-radix-scroll-area-viewport],
+body[data-scroll-locked] {
+  margin: 0 !important;
+  margin-right: 0 !important;
+  padding: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Additional safety net for any inline styles that might be added */
+body[style*="--"] {
+  margin: 0 !important;
+  margin-right: 0 !important;
   padding-right: 0 !important;
 }
