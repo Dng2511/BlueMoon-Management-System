@@ -1,7 +1,5 @@
 name: bluemoon
 
-version: '3.8'
-
 services:
   sqlserver:
     image: "mcr.microsoft.com/mssql/server:2022-latest"
