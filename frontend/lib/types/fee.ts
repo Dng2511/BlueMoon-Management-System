@@ -1,10 +1,14 @@
+import { PageableResponse } from "./common";
+import { Payment } from "./payment";
+
 export interface Fee {
   id: number;
   type: string;
   amount: number;
   month: string;
   description: string;
-  compulsory?: number;
+  compulsory: boolean;
+  payments?: Payment[];
 }
 
 export interface CreateFeeRequest {
@@ -12,34 +16,16 @@ export interface CreateFeeRequest {
   amount: number;
   month: string;
   description: string;
-  compulsory: number;
+  compulsory: boolean;
 }
 
-export interface FeesResponse {
-  content: Fee[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-    sort: {
-      empty: boolean;
-      sorted: boolean;
-      unsorted: boolean;
-    };
-    offset: number;
-    paged: boolean;
-    unpaged: boolean;
-  };
-  last: boolean;
-  totalPages: number;
-  totalElements: number;
-  size: number;
-  number: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  first: boolean;
-  numberOfElements: number;
-  empty: boolean;
+export interface UpdateFeeRequest {
+  type?: string;
+  amount?: number;
+  month?: string;
+  description?: string;
+  compulsory?: boolean;
 }
+
+// Specific response for fees using common pagination type
+export interface FeesResponse extends PageableResponse<Fee> {}

@@ -1,6 +1,7 @@
 export interface PaymentResident {
   id: number;
   fullName: string;
+  apartment?: string;
 }
 
 export interface PaymentFee {
@@ -14,8 +15,22 @@ export interface Payment {
   resident: PaymentResident;
   fee: PaymentFee;
   amountPaid: number;
-  payment_method: string;
+  status: string;
   date_paid: string | null;
+}
+
+export interface CreatePaymentRequest {
+  resident_id: number;
+  fee_id: number;
+  quantity: number;
+  payment_method: string;
+}
+
+export interface UpdatePaymentRequest {
+  resident_id: number;
+  fee_id: number;
+  quantity: number;
+  payment_method?: string;
 }
 
 export interface PaymentsResponse {

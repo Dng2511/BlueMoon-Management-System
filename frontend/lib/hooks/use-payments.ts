@@ -1,9 +1,95 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { paymentsApi } from "../api/payments";
+import { toast } from "sonner";
+import { Payment, CreatePaymentRequest } from "../types/payment";
 
-export function usePayments(params?: { page?: number; size?: number }) {
-  return useQuery({
+interface UsePaymentsParams {
+  page?: number;
+  limit?: number;
+  feeId?: number;
+}
+
+type UpdatePaymentData = Partial<Omit<Payment, 'id' | 'resident' | 'fee'> & { residentId?: number; feeId?: number }>;
+
+export function usePayments(params?: UsePaymentsParams) {
+  const queryClient = useQueryClient();
+  const currentFeeId = params?.feeId;
+
+  const paymentsData = useQuery({
     queryKey: ["payments", params],
     queryFn: () => paymentsApi.getPayments(params),
   });
+
+  const deletePayment = useMutation({
+    mutationFn: (id: number) => paymentsApi.deletePayment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      if (currentFeeId) {
+        queryClient.invalidateQueries({ queryKey: ["fee", currentFeeId] });
+      }
+      toast.success("Payment deleted successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to delete payment");
+    },
+  });
+
+  const bulkDeletePayments = useMutation({
+    mutationFn: async (ids: number[]) => {
+      return Promise.all(ids.map(id => paymentsApi.deletePayment(id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      if (currentFeeId) {
+        queryClient.invalidateQueries({ queryKey: ["fee", currentFeeId] });
+      }
+      toast.success("Payments deleted successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to delete payments in bulk");
+    },
+  });
+
+  const createPayment = useMutation({
+    mutationFn: (data: CreatePaymentRequest) => paymentsApi.createPayment(data),
+    onSuccess: (_result, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["fee", variables.fee_id] });
+      if (currentFeeId && currentFeeId !== variables.fee_id) {
+        queryClient.invalidateQueries({ queryKey: ["fee", currentFeeId] });
+      }
+      toast.success("Payment created successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to create payment");
+    },
+  });
+
+  const updatePayment = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: UpdatePaymentData }) =>
+      paymentsApi.updatePayment(id, data),
+    onSuccess: (_result, { id, data }) => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["payment", id] });
+
+      if (currentFeeId) {
+        queryClient.invalidateQueries({ queryKey: ["fee", currentFeeId] });
+      }
+      if (data.feeId && data.feeId !== currentFeeId) {
+        queryClient.invalidateQueries({ queryKey: ["fee", data.feeId] });
+      }
+      toast.success("Payment updated successfully");
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update payment");
+    },
+  });
+
+  return {
+    payments: paymentsData,
+    deletePayment,
+    bulkDeletePayments,
+    createPayment,
+    updatePayment,
+  };
 }

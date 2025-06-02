@@ -2,9 +2,9 @@ package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.ResidentDTO;
 import com.example.backend.models.Apartment;
-import com.example.backend.models.Relation;
+import com.example.backend.models.enums.Relation;
 import com.example.backend.models.Resident;
-import com.example.backend.models.StayStatus;
+import com.example.backend.models.enums.StayStatus;
 import com.example.backend.repositories.ApartmentRepository;
 import com.example.backend.repositories.ResidentRepository;
 import com.example.backend.services.ResidentService;
@@ -52,7 +52,11 @@ public class ResidentServiceImpl implements ResidentService {
         resident.setPhoneNumber(data.get("phoneNumber").asText());
         resident.setRelation(Relation.valueOf(data.get("relation").asText().toUpperCase()));
         resident.setStayStatus(StayStatus.valueOf(data.get("stay_status").asText().toUpperCase()));
-        Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
+
+//        Apartment apartment = apartmentRepository.getReferenceById(data.get("apartmentId").asLong());
+        Apartment apartment = apartmentRepository.findById(data.get("apartmentId").asLong())
+                .orElseThrow(() -> new RuntimeException("Apartment not found"));
+
         resident.setApartment(apartment);
         resident.setAvatar("default.jpg");
         return ResidentDTO.fromEntity(residentRepository.save(resident));

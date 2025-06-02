@@ -1,12 +1,12 @@
 package com.example.backend.models;
 
-import ch.qos.logback.core.model.Model;
+import com.example.backend.models.enums.Relation;
+import com.example.backend.models.enums.StayStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
@@ -14,6 +14,7 @@ import java.util.List;
 @Table(name = "residents")
 public class Resident extends BaseModel {
 
+    @Column(columnDefinition = "NVARCHAR(255)")
     private String fullName;
     private LocalDate dob;
     private String cccd;

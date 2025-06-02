@@ -37,35 +37,40 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     public PaymentDTO save(JsonNode data) {
+        // Lấy thông tin người dân và phí từ dữ liệu
         Resident resident = residentRepository.findById(data.get("resident_id").asLong())
                 .orElseThrow(() -> new RuntimeException("Resident not found"));
-        if (!Objects.equals(resident.getRelation().name(),"owner") &&
-                !Objects.equals(resident.getRelation().name(),"tenant")) {
-
-            throw new IllegalArgumentException("Resident "+ resident.getId()+ " " + resident.getFullName() + " has invalid relation: " + resident.getRelation());
-        }
         Fee fee = feeRepository.findById(data.get("fee_id").asLong())
                 .orElseThrow(() -> new RuntimeException("Fee not found"));
 
         Payment payment = new Payment();
         payment.setResident(resident);
         payment.setFee(fee);
-        Integer quantity = 1;
+
+        // Lấy số lượng từ dữ liệu, nếu không có thì mặc định là 1
+        Integer quantity = data.get("quantity").asInt();
+
+        // Nếu loại phí là "area", lấy diện tích của căn hộ
         if (Objects.equals(fee.getType(), "area")) {
             quantity = resident.getApartment().getArea();
         }
+        // Thiết lập số lượng và số tiền đã thanh toán
         payment.setQuantity(quantity);
         payment.setAmountPaid(fee.getAmount()*quantity);
 
+        // Lấy phương thức thanh toán từ dữ liệu, nếu không có thì mặc định là null
         String method = data.hasNonNull("payment_method") ? data.get("payment_method").asText() : null;
 
-        if (method == null || method.trim().isEmpty()) {
-            payment.setPaymentMethod("not yet paid");
+        // Thiết lập trạng thái thanh toán và ngày thanh toán
+        if (method == null || method.trim().isEmpty()) { // Nếu phương thức thanh toán là null hoặc rỗng, đặt trạng thái là "not yet paid"
+            payment.setStatus("not yet paid");
             payment.setDatePaid(null); // ngày mặc định
-        } else {
-            payment.setPaymentMethod(method);
+        } else { // Nếu có phương thức thanh toán, đặt trạng thái và ngày thanh toán
+            payment.setStatus(method);
             payment.setDatePaid(LocalDate.now()); // hoặc bạn lấy từ dữ liệu nếu có
         }
+
+        // Lưu payment vào cơ sở dữ liệu và trả về DTO
         return PaymentDTO.fromEntity(paymentRepository.save(payment));
     }
 
@@ -73,11 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
     public PaymentDTO update(JsonNode data, Long id) {
         Resident resident = residentRepository.findById(data.get("resident_id").asLong())
                 .orElseThrow(() -> new RuntimeException("Resident not found"));
-        if (!Objects.equals(resident.getRelation().name(),"owner") &&
-                !Objects.equals(resident.getRelation().name(),"tenant")) {
 
-            throw new IllegalArgumentException("Resident "+ resident.getId()+ " " + resident.getFullName() + " has invalid relation: " + resident.getRelation());
-        }
         Fee fee = feeRepository.findById(data.get("fee_id").asLong())
                 .orElseThrow(() -> new RuntimeException("Fee not found"));
 
@@ -95,10 +96,10 @@ public class PaymentServiceImpl implements PaymentService {
         String method = data.hasNonNull("payment_method") ? data.get("payment_method").asText() : null;
 
         if (method == null || method.trim().isEmpty()) {
-            payment.setPaymentMethod("not yet paid");
+            payment.setStatus("not yet paid");
             payment.setDatePaid(null); // ngày mặc định
         } else {
-            payment.setPaymentMethod(method);
+            payment.setStatus(method);
             if (payment.getDatePaid() != null) payment.setDatePaid(LocalDate.now());
         }
         return PaymentDTO.fromEntity(paymentRepository.save(payment));
@@ -121,7 +122,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setFee(fee);
         payment.setQuantity(quantity);
         payment.setAmountPaid(fee.getAmount()*quantity);
-        payment.setPaymentMethod("not yet paid");
+        payment.setStatus("not yet paid");
         payment.setDatePaid(null);
 
         paymentRepository.save(payment);

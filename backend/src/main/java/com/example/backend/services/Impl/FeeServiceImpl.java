@@ -1,9 +1,11 @@
 package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.FeeDTO;
+import com.example.backend.dtos.FeePaymentDTO;
 import com.example.backend.models.Fee;
 import com.example.backend.models.Resident;
 import com.example.backend.repositories.FeeRepository;
+import com.example.backend.repositories.PaymentRepository;
 import com.example.backend.repositories.ResidentRepository;
 import com.example.backend.services.FeeService;
 import com.example.backend.services.PaymentService;
@@ -21,10 +23,16 @@ public class FeeServiceImpl implements FeeService {
     private final FeeRepository feeRepository;
     private final ResidentRepository residentRepository;
     private final PaymentService paymentService;
+    private final PaymentRepository paymentRepository;
 
     @Override
     public Page<FeeDTO> getAllFees(Pageable pageable) {
         return feeRepository.findAll(pageable).map(FeeDTO::fromEntity);
+    }
+
+    @Override
+    public Page<FeePaymentDTO> getPayments(Pageable pageable, Long id) {
+        return paymentRepository.findByFeeId(pageable, id).map(FeePaymentDTO::fromEntity);
     }
 
     @Override
@@ -48,7 +56,7 @@ public class FeeServiceImpl implements FeeService {
         f.setCompulsory(feeDTO.isCompulsory());
         feeRepository.save(f);
         if(feeDTO.isCompulsory()) {
-            List<Resident> residents = residentRepository.findByRelationIn(List.of("OWNER", "TENANT"));
+            List<Resident> residents = residentRepository.findByRelationIn(List.of("OWNER"));
             for (Resident resident : residents) {
                 paymentService.save(f, resident);
             }
