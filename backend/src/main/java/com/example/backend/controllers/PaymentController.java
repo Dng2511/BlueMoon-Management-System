@@ -40,4 +40,15 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<Page<PaymentDTO>> searchPayments(
+            @RequestParam(value = "feeType", required = false) String feeType,
+            @RequestParam(value = "resident", required = false) String residentId,
+            @RequestParam(value = "apartmentName", required = false) String apartmentName,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        Pageable pageable = PageRequest.of(page - 1, limit);
+
+        return ResponseEntity.ok(paymentService.searchPayments(feeType, residentId, apartmentName, pageable));
+    }
 }

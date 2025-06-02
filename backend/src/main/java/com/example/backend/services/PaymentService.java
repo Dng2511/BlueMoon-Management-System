@@ -8,15 +8,17 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface PaymentService {
-    public Page<PaymentDTO> findAll(Pageable pageable);
+    Page<PaymentDTO> findAll(Pageable pageable);
 
-    public Page<PaymentDTO> findBy(Long userId, Pageable pageable);
+    Page<PaymentDTO> findBy(Long userId, Pageable pageable);
 
-    public PaymentDTO save(JsonNode data);
+    PaymentDTO save(JsonNode data);
 
-    public PaymentDTO update(JsonNode data, Long id);
+    PaymentDTO update(JsonNode data, Long id);
 
-    public void delete(Long id);
+    void delete(Long id);
 
     void save(Fee fee, Resident Resident);
+
+    public Page<PaymentDTO> searchPayments(String feeType, String residentId, String apartmentName, Pageable pageable);
 }
