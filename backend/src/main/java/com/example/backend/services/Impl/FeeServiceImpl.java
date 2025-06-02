@@ -81,15 +81,15 @@ public class FeeServiceImpl implements FeeService {
         f.setMonth(month);
         f.setCompulsory(feeDTO.isCompulsory());
         feeRepository.save(f);
-
-
-
-
-
     }
 
     @Override
     public void deleteFee(Long id) {
         feeRepository.deleteById(id);
+    }
+
+    @Override
+    public Page<FeeDTO> searchFeesByType(String type, Pageable pageable) {
+        return feeRepository.findByTypeContaining(type, pageable).map(FeeDTO::fromEntity);
     }
 }

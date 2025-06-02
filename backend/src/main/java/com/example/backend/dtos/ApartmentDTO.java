@@ -2,6 +2,7 @@ package com.example.backend.dtos;
 
 import com.example.backend.models.Apartment;
 import com.example.backend.models.Resident;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.*;
 
 import java.util.ArrayList;
@@ -12,42 +13,25 @@ import java.util.stream.Collectors;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonPropertyOrder({
+        "id",
+        "name",
+        "area"
+})
 public class ApartmentDTO {
     private Long id;
+
     private String name;
-    private List<ApaResident> residents;
 
-
-
+    private Integer area;
 
     public static ApartmentDTO fromEntity(Apartment apartment) {
         ApartmentDTO dto = new ApartmentDTO();
-        dto.id = apartment.getId();
-        dto.name = apartment.getName();
 
-        if (apartment.getResidents() != null) {
-            dto.residents = apartment.getResidents()
-                    .stream()
-                    .map(ApaResident::new)
-                    .collect(Collectors.toList());
-        } else {
-            dto.residents = new ArrayList<>();
-        }
+        dto.setId(apartment.getId());
+        dto.setName(apartment.getName());
+        dto.setArea(apartment.getArea());
 
         return dto;
-    }
-
-    @Getter
-    @Setter
-    static class ApaResident{
-        private Long id;
-        private String fullName;
-        private String relation;
-
-        public ApaResident(Resident resident){
-            this.id = resident.getId();
-            this.fullName = resident.getFullName();
-            this.relation = resident.getRelation().name();
-        }
     }
 }

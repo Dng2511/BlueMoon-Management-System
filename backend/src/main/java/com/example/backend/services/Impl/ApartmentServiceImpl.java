@@ -2,6 +2,8 @@ package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.ApartmentDTO;
 import com.example.backend.dtos.ResidentDTO;
+import com.example.backend.dtos.subDTO.ApartmentDetailDTO;
+import com.example.backend.dtos.subDTO.ApartmentSummaryDTO;
 import com.example.backend.models.Apartment;
 import com.example.backend.repositories.ApartmentRepository;
 import com.example.backend.services.ApartmentService;
@@ -19,8 +21,8 @@ public class ApartmentServiceImpl implements ApartmentService {
     private final ApartmentRepository apartmentRepository;
 
     @Override
-    public Page<ApartmentDTO> getAllApartments(Pageable pageable) {
-        return apartmentRepository.findAll(pageable).map(ApartmentDTO::fromEntity);
+    public Page<ApartmentSummaryDTO> getAllApartments(Pageable pageable) {
+        return apartmentRepository.findAll(pageable).map(ApartmentSummaryDTO::fromEntity);
     }
 
     @Override
@@ -31,7 +33,10 @@ public class ApartmentServiceImpl implements ApartmentService {
     @Override
     public ApartmentDTO saveApartment(JsonNode data) {
         Apartment apartment = new Apartment();
+
         apartment.setName(data.get("name").asText());
+        apartment.setArea(data.get("area").asInt());
+
         return ApartmentDTO.fromEntity(apartmentRepository.save(apartment));
     }
 
@@ -46,5 +51,13 @@ public class ApartmentServiceImpl implements ApartmentService {
     @Override
     public void deleteApartment(Long id) {
         apartmentRepository.deleteById(id);
+    }
+
+    @Override
+    public ApartmentDetailDTO getApartmentDetail(Long id) {
+        Apartment apartment = apartmentRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Apartment not found"));
+
+        return ApartmentDetailDTO.fromEntity(apartment);
     }
 }

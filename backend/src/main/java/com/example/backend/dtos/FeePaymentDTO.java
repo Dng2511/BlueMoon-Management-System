@@ -2,6 +2,7 @@ package com.example.backend.dtos;
 
 import com.example.backend.models.Payment;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -9,8 +10,16 @@ import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
+@JsonPropertyOrder({
+        "id",
+        "quantity",
+        "resident",
+        "amountPaid",
+        "status",
+        "date_paid"
+})
 public class FeePaymentDTO {
-    private Long id;
+    private Long id; // Unique identifier for the payment
     private Integer quantity;
     private PaymentDTO.ResPayment resident;
     private Integer amountPaid;
