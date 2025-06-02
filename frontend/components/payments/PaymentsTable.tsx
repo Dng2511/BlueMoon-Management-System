@@ -35,6 +35,8 @@ import {
   IconPlus,
   IconTrendingUp,
   IconTrash,
+  IconCreditCard,
+  IconCash,
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -221,8 +223,17 @@ export function PaymentsTable({
       header: "Amount Paid",
       cell: ({ row }) => row.original.amountPaid === 0 ? "-" : new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(row.original.amountPaid),
     },
-    { accessorKey: "payment_method", header: "Payment Method", cell: ({ row }) => row.original.status },
-    { accessorKey: "date_paid", header: "Date Paid", cell: ({ row }) => row.original.date_paid ? new Date(row.original.date_paid).toLocaleDateString() : "-" },
+    { accessorKey: "payment_method", header: "Payment Method", cell: ({ row }) => (
+      <Badge variant="outline" className="text-muted-foreground px-1.5">
+        {row.original.status != "not_yet_paid" ? (
+          <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
+        ) : (
+          <IconCreditCard />
+        )}
+        {row.original.status}
+      </Badge>
+    ) },
+    { accessorKey: "date_paid", header: "Updated Date", cell: ({ row }) => row.original.date_paid ? new Date(row.original.date_paid).toLocaleDateString() : "-" },
     {
       id: "actions",
       cell: ({ row }) => {
@@ -600,63 +611,6 @@ export function PaymentsTable({
         <div className="aspect-video w-full flex-1 rounded-lg border border-dashed"></div>
       </TabsContent>
     </Tabs>
-  )
-}
-
-
-function TableCellViewer({ item }: { item: Payment }) {
-  const isMobile = useIsMobile()
-
-  return (
-    <Drawer direction={isMobile ? "bottom" : "right"}>
-      <DrawerTrigger asChild>
-        <Button variant="link" className="text-foreground w-fit px-0 text-left">
-          {item.resident.fullName}
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent>
-        <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.resident.fullName}</DrawerTitle>
-          <DrawerDescription>
-            Payment details
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          <form className="flex flex-col gap-4">
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="id">ID</Label>
-              <Input id="id" defaultValue={item.id} />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="residentName">Resident Name</Label>
-              <Input id="residentName" defaultValue={item.resident.fullName} />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="quantity">Quantity</Label>
-              <Input id="quantity" defaultValue={item.quantity} />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="amountPaid">Amount Paid</Label>
-              <Input id="amountPaid" defaultValue={item.amountPaid} />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="payment_method">Payment Method</Label>
-              <Input id="payment_method" defaultValue={item.status} />
-            </div>
-            <div className="flex flex-col gap-3">
-              <Label htmlFor="date_paid">Date Paid</Label>
-              <Input id="date_paid" defaultValue={item.date_paid ? item.date_paid : "-"} />
-            </div>
-          </form>
-        </div>
-        <DrawerFooter>
-          <Button>Submit</Button>
-          <DrawerClose asChild>
-            <Button variant="outline">Done</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
   )
 }
 
