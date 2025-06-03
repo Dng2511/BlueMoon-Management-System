@@ -54,5 +54,15 @@ public class FeeController {
         Pageable pageable = PageRequest.of(page - 1, limit);
         return ResponseEntity.ok(feeService.getPayments(pageable, id));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<FeeDTO>> searchFees(
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "limit", defaultValue = "10") int limit) {
+
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        return ResponseEntity.ok(feeService.searchFeesByType(type, pageable));
+    }
 }
 

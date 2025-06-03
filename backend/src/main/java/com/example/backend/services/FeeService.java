@@ -19,4 +19,6 @@ public interface FeeService {
     public void updateFee(FeeDTO feeDTO, Long id);
 
     public void deleteFee(Long id);
+
+    public Page<FeeDTO> searchFeesByType(String type, Pageable pageable);
 }
