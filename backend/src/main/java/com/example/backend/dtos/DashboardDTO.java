@@ -1,10 +1,14 @@
 package com.example.backend.dtos;
 
+import com.example.backend.dtos.subDTO.ResidentGroupByRelation;
+import com.example.backend.dtos.subDTO.ResidentGroupByStayStatus;
+import com.example.backend.dtos.subDTO.Revenue;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -22,16 +26,11 @@ public class DashboardDTO {
     @JsonProperty("total_resident")
     private long totalResident;
 
-    @JsonProperty("permanent_residence")
-    private long permanentResidence;     // Thường trú
+    private ResidentGroupByStayStatus residentGroupByStayStatus;
 
-    @JsonProperty("temporary_residence")
-    private long temporaryResidence;    // Tạm trú
+    private ResidentGroupByRelation residentGroupByRelation;
 
-    @JsonProperty("temporary_absence")
-    private long temporaryAbsence;     // Tạm vắng
+    private List<Revenue> monthlyRevenues;
 
-    private long unregistered;
-
-
+    private List<Revenue> annualRevenues;
 }
