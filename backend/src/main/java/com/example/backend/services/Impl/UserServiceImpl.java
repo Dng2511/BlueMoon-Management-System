@@ -2,7 +2,7 @@ package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.UserDTO;
 import com.example.backend.models.User;
-import com.example.backend.models.enums.Role;
+import com.example.backend.models.enums.UserRole;
 import com.example.backend.repositories.UserRepository;
 import com.example.backend.services.UserService;
 import lombok.AccessLevel;
@@ -44,7 +44,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userDTO.getUsername());
         user.setPassword(userDTO.getPassword());
         user.setEmail(userDTO.getEmail());
-        user.setRole(Role.ADMIN); // Default role
+        user.setRoles(UserRole.STAFF); // Default role
 
         return UserDTO.fromEntity(userRepository.save(user));
     }

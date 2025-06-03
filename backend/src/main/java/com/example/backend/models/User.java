@@ -1,6 +1,6 @@
 package com.example.backend.models;
 
-import com.example.backend.models.enums.Role;
+import com.example.backend.models.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -23,6 +23,6 @@ public class User {
     String email;
 
     @Enumerated(EnumType.STRING)
-    Role role;
+    UserRole roles;
 }
 

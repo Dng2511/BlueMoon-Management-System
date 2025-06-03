@@ -1,7 +1,6 @@
 package com.example.backend.dtos;
 
 import com.example.backend.models.User;
-import com.example.backend.models.enums.Role;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package com.example.backend.config;
+package com.example.backend.exception;
 
 
 import jakarta.persistence.EntityNotFoundException;
@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -85,6 +86,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<Map<String, Object>> handleMissingParams(MissingServletRequestParameterException e) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Missing request parameter: " + e.getParameterName());
+    }
+
+    @ExceptionHandler(value = AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
+        //log.error("Access denied exception: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN) // 403
+                .body(Map.of("message", "You do not have permission to access this resource."));
     }
 }
 
