@@ -17,6 +17,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Page<Payment> findByFeeId(Pageable pageable, Long feeId);
 
+    List<Payment> findByFeeId(Long feeId);
+
     @Query("SELECT p FROM Payment p " +
             "JOIN p.fee f " +
             "JOIN p.resident r " +
