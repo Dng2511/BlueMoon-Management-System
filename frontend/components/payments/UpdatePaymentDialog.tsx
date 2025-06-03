@@ -39,13 +39,13 @@ const formSchema = z.object({
   quantity: z.coerce.number(),
   payment_method: z.string().optional(),
 }).superRefine((data, ctx) => {
-  if (data.payment_method === "not_yet_paid" && data.quantity !== 0) {
+  if (data.payment_method === "not yet paid" && data.quantity !== 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "Quantity must be 0 when payment method is 'Not Yet Paid'",
       path: ["quantity"],
     });
-  } else if (data.payment_method !== "not_yet_paid" && data.quantity <= 0) {
+  } else if (data.payment_method !== "not yet paid" && data.quantity <= 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "Quantity must be greater than 0 for other payment methods",
@@ -85,7 +85,7 @@ export function UpdatePaymentDialog({
 
   const paymentMethod = form.watch("payment_method");
   React.useEffect(() => {
-    if (paymentMethod === "not_yet_paid") {
+    if (paymentMethod === "not yet paid") {
       form.setValue("quantity", 0);
     } else if (form.getValues("quantity") === 0) {
       form.setValue("quantity", 1);
@@ -204,7 +204,7 @@ export function UpdatePaymentDialog({
                       <SelectItem value="cash">Cash</SelectItem>
                       <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
                       <SelectItem value="credit_card">Credit Card</SelectItem>
-                      <SelectItem value="not_yet_paid">Not Yet Paid</SelectItem>
+                      <SelectItem value="not yet paid">Not Yet Paid</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
@@ -225,7 +225,7 @@ export function UpdatePaymentDialog({
                       placeholder="Enter quantity" 
                       {...field}
                       onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      disabled={paymentMethod === "not_yet_paid"}
+                      disabled={paymentMethod === "not yet paid"}
                     />
                   </FormControl>
                   <FormMessage />
