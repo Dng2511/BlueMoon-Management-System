@@ -129,8 +129,10 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     @Override
-    public Page<PaymentDTO> searchPayments(String feeType, String resident, String apartmentName, Pageable pageable) {
-        return paymentRepository.searchPayments(feeType, resident, apartmentName, pageable)
+    public Page<PaymentDTO> searchPayments(String value, Pageable pageable) {
+//        return paymentRepository.searchPayments(feeType, resident, apartmentName, pageable)
+//                .map(PaymentDTO::fromEntity);
+        return paymentRepository.searchPayments(value, pageable)
                 .map(PaymentDTO::fromEntity);
     }
 
