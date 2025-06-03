@@ -93,6 +93,7 @@ import { usePagination } from "@/lib/hooks/use-pagination"
 import { useFeesByMonth } from "@/lib/hooks/use-fees"
 import { FeesTabAll } from "./FeesTabAll"
 import { FeesTabCurrentMonth } from "./FeesTabCurrentMonth"
+import { Input } from "@/components/ui/input"
 
 export const schema = z.object({
   id: z.number(),
@@ -131,7 +132,9 @@ export function FeesTable({
   isCreating,
   isUpdating,
   isDeleting,
+  isLoading,
   onPageChange,
+  onSearch,
 }: {
   data: FeesResponse | undefined
   onEdit?: (id: number, data: UpdateFeeRequest) => Promise<void>
@@ -140,7 +143,9 @@ export function FeesTable({
   isCreating?: boolean
   isUpdating?: boolean
   isDeleting?: boolean
+  isLoading?: boolean
   onPageChange?: (page: number, pageSize: number) => void
+  onSearch?: (query: string) => Promise<void>
 }) {
   const router = useRouter()
   const [rowSelection, setRowSelection] = React.useState({})
@@ -153,6 +158,10 @@ export function FeesTable({
   const [editingItem, setEditingItem] = React.useState<z.infer<typeof schema> | null>(null)
   const [isBulkDeleting, setIsBulkDeleting] = React.useState(false)
   const [activeTab, setActiveTab] = React.useState("outline")
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [isSearching, setIsSearching] = React.useState(false)
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+  const isFirstMount = React.useRef(true)
   
   // Get current date and format it as YYYY-MM
   const currentDate = new Date()
@@ -206,6 +215,13 @@ export function FeesTable({
   React.useEffect(() => {
     setData(initialData)
   }, [initialData])
+
+  React.useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      // Your first mount logic here
+    }
+  }, [])
 
   // Handle bulk delete
   const handleBulkDelete = async () => {
@@ -419,6 +435,38 @@ export function FeesTable({
     [data]
   )
 
+  // Handle search with debounce
+  const handleSearch = async (value: string) => {
+    setSearchQuery(value)
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      if (activeTab !== "monthly-fees") {
+        setIsSearching(true)
+        try {
+          await onSearch?.(value)
+          if (onPageChange) {
+            onPageChange(0, pagination.pageSize)
+          }
+        } finally {
+          setIsSearching(false)
+        }
+      }
+    }, 300) // Reduced debounce time for better responsiveness
+  }
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const table = useReactTable({
     data,
     columns,
@@ -440,7 +488,7 @@ export function FeesTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getPaginationRowModel: getPaginationRowModel(),
-    manualPagination: activeTab !== "monthly-fees", // Enable manual pagination for server-side, disable for monthly-fees
+    manualPagination: activeTab !== "monthly-fees",
     pageCount: activeTab === "monthly-fees" ? -1 : (feesResponse?.totalPages || 0),
   })
 
@@ -512,6 +560,20 @@ export function FeesTable({
             )}
           </div>
           <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative">
+              <Input
+                placeholder="Search fee type..."
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className={`h-8 w-[150px] lg:w-[250px] pr-8 ${isSearching ? 'opacity-70' : ''}`}
+                disabled={isSearching}
+              />
+              {isSearching && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <IconLoader className="h-4 w-4 animate-spin text-muted-foreground" />
+                </div>
+              )}
+            </div>
             {table.getFilteredSelectedRowModel().rows.length > 0 && (
               <ConfirmationDialog
                 trigger={

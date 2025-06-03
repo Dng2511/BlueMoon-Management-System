@@ -124,6 +124,7 @@ interface PaymentsTableProps {
   onBulkDelete?: (ids: number[]) => Promise<void>;
   onCreate?: (data: CreatePaymentRequest) => Promise<void>;
   onUpdate?: (id: number, data: UpdatePaymentRequest) => Promise<void>;
+  onSearch?: (query: string) => Promise<void>;
   isDeleting?: boolean;
   isCreating?: boolean;
   isUpdating?: boolean;
@@ -173,6 +174,7 @@ export function PaymentsTable({
   onBulkDelete,
   onCreate,
   onUpdate,
+  onSearch,
   isDeleting,
   isCreating,
   isUpdating,
@@ -225,7 +227,7 @@ export function PaymentsTable({
     },
     { accessorKey: "payment_method", header: "Payment Method", cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
-        {row.original.status != "not_yet_paid" ? (
+        {row.original.status != "not yet paid" ? (
           <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
         ) : (
           <IconCreditCard />
@@ -364,6 +366,47 @@ export function PaymentsTable({
     }
   };
 
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [isSearching, setIsSearching] = React.useState(false)
+  const searchTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+  const isFirstMount = React.useRef(true)
+
+  // Handle search with debounce
+  const handleSearch = async (value: string) => {
+    setSearchQuery(value)
+    
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    searchTimeoutRef.current = setTimeout(async () => {
+      setIsSearching(true)
+      try {
+        await onSearch?.(value)
+        if (onPageChange) {
+          onPageChange(0, pageSize)
+        }
+      } finally {
+        setIsSearching(false)
+      }
+    }, 300) // Reduced debounce time for better responsiveness
+  }
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+    }
+  }, [])
+
   return (
     <Tabs
       defaultValue="outline"
@@ -399,6 +442,20 @@ export function PaymentsTable({
           </SelectContent>
         </Select>
         <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative">
+            <Input
+              placeholder="Search payments..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className={`h-8 w-[150px] lg:w-[250px] pr-8 ${isSearching ? 'opacity-70' : ''}`}
+              disabled={isSearching}
+            />
+            {isSearching && (
+              <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                <IconLoader className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
+          </div>
           {table.getFilteredSelectedRowModel().rows.length > 0 && (
             <ConfirmationDialog
               open={showBulkDeleteDialog}

@@ -8,6 +8,7 @@ import {
   UpdateFeeRequest,
 } from "@/lib/types/fee";
 import { usePagination } from "@/lib/hooks/use-pagination";
+import React from "react";
 
 export default function FeesPage() {
   const pagination = usePagination({
@@ -15,10 +16,20 @@ export default function FeesPage() {
     initialPageSize: 10,
   });
 
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const isFirstMount = React.useRef(true);
+
   const { fees, createFee, updateFee, deleteFee } = useFees({
     page: pagination.currentPage,
     limit: pagination.pageSize,
+    type: searchQuery || undefined,
   });
+
+  React.useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+    }
+  }, []);
 
   const handleCreate = async (data: CreateFeeRequest) => {
     try {
@@ -51,7 +62,11 @@ export default function FeesPage() {
     }
   };
 
-  if (fees.isLoading) {
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+  };
+
+  if (fees.isLoading && isFirstMount.current) {
     return (
       <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
         <div className="px-4 lg:px-6">
@@ -109,6 +124,8 @@ export default function FeesPage() {
         isCreating={createFee.isPending}
         isUpdating={updateFee.isPending}
         isDeleting={deleteFee.isPending}
+        isLoading={fees.isLoading}
+        onSearch={handleSearch}
       />
     </div>
   );
