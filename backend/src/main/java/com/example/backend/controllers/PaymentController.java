@@ -42,6 +42,7 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 
+    /**
     @GetMapping("/search")
     public ResponseEntity<Page<PaymentDTO>> searchPayments(
             @RequestParam(value = "queryString", required = false) String search,
@@ -50,5 +51,15 @@ public class PaymentController {
         Pageable pageable = PageRequest.of(page - 1, limit);
 
         return ResponseEntity.ok(paymentService.searchPayments(search, pageable));
+    }
+    **/
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<PaymentDTO>> searchPayments(
+            @RequestParam(value = "value", required = false) String value,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        Pageable pageable = PageRequest.of(page - 1, limit);
+        return ResponseEntity.ok(paymentService.searchPayments(value, pageable));
     }
 }
