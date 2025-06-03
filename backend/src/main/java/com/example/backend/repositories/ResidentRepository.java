@@ -1,6 +1,7 @@
 package com.example.backend.repositories;
 
 import com.example.backend.models.Resident;
+import com.example.backend.models.enums.Relation;
 import com.example.backend.models.enums.StayStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,6 +20,9 @@ public interface ResidentRepository extends JpaRepository<Resident, Long> {
 
     @Query("SELECT COUNT(r) FROM Resident r WHERE r.stayStatus = :status")
     long countByStayStatus(@Param("status") StayStatus status);
+
+    @Query("SELECT COUNT(r) FROM Resident r WHERE r.relation = :relation")
+    long countByRelation(@Param("relation") Relation relation);
 
     List<Resident> findByRelationIn(List<String> owner);
 

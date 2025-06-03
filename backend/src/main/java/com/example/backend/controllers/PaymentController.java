@@ -18,10 +18,12 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @GetMapping
-    public ResponseEntity<Page<PaymentDTO>> getPayments(@RequestParam(value = "page", defaultValue = "1") int page,
-                                                        @RequestParam(value = "limit", defaultValue = "20") int limit) {
+    public ResponseEntity<Page<PaymentDTO>> getPayments(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "limit", defaultValue = "20") int limit) {
         Pageable pageable = PageRequest.of(page-1, limit);
-        return ResponseEntity.ok(paymentService.findAll(pageable));
+        return ResponseEntity.ok(paymentService.searchPayments(search, pageable));
     }
 
     @PostMapping
@@ -43,14 +45,12 @@ public class PaymentController {
     /**
     @GetMapping("/search")
     public ResponseEntity<Page<PaymentDTO>> searchPayments(
-            @RequestParam(value = "feeType", required = false) String feeType,
-            @RequestParam(value = "resident", required = false) String residentId,
-            @RequestParam(value = "apartmentName", required = false) String apartmentName,
+            @RequestParam(value = "queryString", required = false) String search,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "limit", defaultValue = "20") int limit) {
         Pageable pageable = PageRequest.of(page - 1, limit);
 
-        return ResponseEntity.ok(paymentService.searchPayments(feeType, residentId, apartmentName, pageable));
+        return ResponseEntity.ok(paymentService.searchPayments(search, pageable));
     }
     **/
 

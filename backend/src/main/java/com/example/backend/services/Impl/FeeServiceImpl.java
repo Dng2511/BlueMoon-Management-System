@@ -3,6 +3,7 @@ package com.example.backend.services.Impl;
 import com.example.backend.dtos.FeeDTO;
 import com.example.backend.dtos.FeePaymentDTO;
 import com.example.backend.models.Fee;
+import com.example.backend.models.Payment;
 import com.example.backend.models.Resident;
 import com.example.backend.repositories.FeeRepository;
 import com.example.backend.repositories.PaymentRepository;
@@ -75,6 +76,11 @@ public class FeeServiceImpl implements FeeService {
                 () -> new RuntimeException("Fee not found")
         );
         f.setAmount(feeDTO.getAmount());
+        List<Payment> payments = paymentRepository.findByFeeId(id);
+        for (Payment payment : payments) {
+            payment.setAmountPaid(feeDTO.getAmount()*payment.getQuantity());
+            paymentRepository.save(payment);
+        }
         f.setType(feeDTO.getType());
         f.setDescription(feeDTO.getDescription());
         f.setYear(year);
