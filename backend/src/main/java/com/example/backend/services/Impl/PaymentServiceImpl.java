@@ -86,7 +86,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .orElseThrow(() -> new RuntimeException("Payment not found"));
         payment.setResident(resident);
         payment.setFee(fee);
-        Integer quantity = 1;
+        Integer quantity = data.get("quantity").asInt();
         if (Objects.equals(fee.getType(), "area")) {
             quantity = resident.getApartment().getArea();
         }

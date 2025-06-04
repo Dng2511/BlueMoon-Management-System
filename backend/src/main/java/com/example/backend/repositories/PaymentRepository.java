@@ -34,8 +34,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             "CONCAT(f.month, '-', f.year), SUM(p.amountPaid)) " +
             "FROM Payment p " +
             "JOIN p.fee f " +
-            "WHERE (f.year = :year AND f.month >= :month) " +
-            "   OR (f.year = :previousYear AND f.month <= :month) " +
+            "WHERE (f.year = :year AND f.month <= :month) " +
+            "   OR (f.year = :previousYear AND f.month >= :month) " +
             "GROUP BY f.year, f.month " +
             "ORDER BY f.year, f.month")
     List<Revenue> getMonthlyRevenueInOneYearRange(

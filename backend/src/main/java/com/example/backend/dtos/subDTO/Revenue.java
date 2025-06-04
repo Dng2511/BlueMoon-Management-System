@@ -9,6 +9,6 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class Revenue {
-    private String month;
+    private String time;
     private Long revenue;
 }
