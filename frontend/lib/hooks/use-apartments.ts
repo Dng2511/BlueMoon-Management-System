@@ -93,3 +93,32 @@ export function useApartments(params?: {
     deleteApartment: { mutateAsync: deleteApartment, isLoading: deleteLoading },
   };
 }
+
+export function useApartment(id?: number) {
+  const [apartment, setApartment] = useState<Apartment | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [error, setError] = useState<any>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    setIsLoading(true);
+    setIsError(false);
+    setError(null);
+    apartmentsApi
+      .getApartment(id)
+      .then((data) => {
+        setApartment(data);
+      })
+      .catch((err) => {
+        setIsError(true);
+        setError(err);
+        toast.error("Failed to load apartment");
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [id]);
+
+  return { apartment, isLoading, isError, error };
+}

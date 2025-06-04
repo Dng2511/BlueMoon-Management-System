@@ -22,8 +22,12 @@ import {
   IconDotsVertical,
   IconLayoutColumns,
   IconPlus,
+  IconGripVertical,
+  IconLoader,
+  IconTrash,
 } from "@tabler/icons-react";
-
+import { useRouter } from "next/navigation";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -55,10 +59,11 @@ import {
   UpdateApartmentRequest,
 } from "@/lib/types/apartment";
 import { Badge } from "@/components/ui/badge";
-
 import { DeleteApartmentDialog } from "./DeleteApartmentDialog";
 import { UpdateApartmentDialog } from "./UpdateApartmentDialog";
 import { CreateApartmentDialog } from "./CreateApartmentDialog";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
+import { format } from "date-fns";
 
 interface ApartmentsTableProps {
   apartments: Apartment[];
@@ -79,14 +84,15 @@ export function ApartmentsTable({
   isUpdating,
   isDeleting,
 }: ApartmentsTableProps) {
+  const router = useRouter();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      id: false, // Hide the ID column
-    });
+    React.useState<VisibilityState>({ id: false });
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [isBulkDeleting, setIsBulkDeleting] = React.useState(false);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -94,14 +100,64 @@ export function ApartmentsTable({
 
   const columns: ColumnDef<Apartment>[] = [
     {
-      accessorKey: "id",
-      header: "ID",
-      cell: ({ row }) => <div className="w-12">{row.getValue("id")}</div>,
+      id: "drag",
+      header: () => null,
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-muted-foreground size-7 hover:bg-transparent cursor-grab active:cursor-grabbing"
+        >
+          <IconGripVertical className="text-muted-foreground size-3" />
+          <span className="sr-only">Drag to reorder</span>
+        </Button>
+      ),
+    },
+    {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
     {
       accessorKey: "name",
       header: "Name",
-      cell: ({ row }) => <div className="w-32">{row.getValue("name")}</div>,
+      cell: ({ row }) => (
+        <Button
+          variant="link"
+          className="font-semibold text-foreground w-fit px-0 text-left"
+          onClick={() => router.push(`/apartments/${row.original.id}`)}
+        >
+          {row.getValue("name")}
+        </Button>
+      ),
+    },
+    {
+      accessorKey: "id",
+      header: "ID",
+      cell: ({ row }) => <div className="w-12">{row.getValue("id")}</div>,
     },
     {
       accessorKey: "area",
@@ -120,7 +176,10 @@ export function ApartmentsTable({
       header: "Created Date",
       cell: ({ row }) => (
         <div className="w-32">
-          {new Date(row.getValue("date_created")).toLocaleDateString()}
+          {format(
+            new Date(row.getValue("date_created") as string),
+            "dd/MM/yyyy"
+          )}
         </div>
       ),
     },
@@ -185,6 +244,21 @@ export function ApartmentsTable({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
   });
+
+  const handleBulkDelete = async () => {
+    if (!onDelete) return;
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    const selectedIds = selectedRows.map((row) => row.original.id);
+    setIsBulkDeleting(true);
+    try {
+      await Promise.all(selectedIds.map((id) => onDelete(id)));
+      setRowSelection({});
+    } catch (error) {
+      // handle error
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -312,45 +386,41 @@ export function ApartmentsTable({
             {table.getPageCount()}
           </div>
           <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              className="hidden h-8 w-8 p-0 lg:flex"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to first page</span>
-              <IconChevronsLeft className="size-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="size-8"
-              size="icon"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <span className="sr-only">Go to previous page</span>
-              <IconChevronLeft className="size-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="size-8"
-              size="icon"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to next page</span>
-              <IconChevronRight className="size-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="hidden size-8 lg:flex"
-              size="icon"
-              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <span className="sr-only">Go to last page</span>
-              <IconChevronsRight className="size-4" />
-            </Button>
+            {table.getFilteredSelectedRowModel().rows.length > 0 && (
+              <ConfirmationDialog
+                trigger={
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    disabled={isBulkDeleting}
+                  >
+                    {isBulkDeleting ? (
+                      <IconLoader className="size-4 animate-spin" />
+                    ) : (
+                      <IconTrash className="size-4" />
+                    )}
+                    {isBulkDeleting
+                      ? `Deleting ${
+                          table.getFilteredSelectedRowModel().rows.length
+                        } apartments...`
+                      : `Delete ${
+                          table.getFilteredSelectedRowModel().rows.length
+                        } selected`}
+                  </Button>
+                }
+                title={`Delete ${
+                  table.getFilteredSelectedRowModel().rows.length
+                } apartments?`}
+                description={`This action cannot be undone. This will permanently delete ${
+                  table.getFilteredSelectedRowModel().rows.length
+                } apartments from the system.`}
+                confirmText={isBulkDeleting ? "Deleting..." : "Delete All"}
+                onConfirm={handleBulkDelete}
+                isConfirming={isBulkDeleting}
+                confirmButtonVariant="destructive"
+              />
+            )}
           </div>
         </div>
       </div>
