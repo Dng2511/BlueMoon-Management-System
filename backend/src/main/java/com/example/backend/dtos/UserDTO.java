@@ -29,12 +29,15 @@ public class UserDTO {
 
     String email;
 
+    Role role;
+
     public static UserDTO fromEntity(User user){
       return new UserDTO(
               user.getId(),
               user.getUsername(),
               user.getPassword(),
-              user.getEmail()
+              user.getEmail(),
+              user.getRole()
       );
     }
 }
