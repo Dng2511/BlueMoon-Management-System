@@ -12,15 +12,15 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonPropertyOrder({
-        "email",
+        "username",
         "password",
 })
 public class UserLoginForm {
-    String email;
+    String username;
 
     String password;
 
-    public static UserLoginForm fromEmailAndPassword(String email, String password) {
-        return new UserLoginForm(email, password);
-    }
+//    public static UserLoginForm fromEmailAndPassword(String email, String password) {
+//        return new UserLoginForm(email, password);
+//    }
 }

@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(userDTO.getUsername());
         user.setPassword(userDTO.getPassword());
         user.setEmail(userDTO.getEmail());
-        user.setRole(Role.ADMIN); // Default role
+        user.setRole(Role.STAFF); // Default role
 
         return UserDTO.fromEntity(userRepository.save(user));
     }
@@ -86,8 +86,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO loginUser(UserLoginForm userLoginForm){
-        User user = userRepository.findByEmail(userLoginForm.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + userLoginForm.getEmail()));
+        User user = userRepository.findByUsername(userLoginForm.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found with username: " + userLoginForm.getUsername()));
 
         if (!user.getPassword().equals(userLoginForm.getPassword())) {
             throw new RuntimeException("Invalid password");
