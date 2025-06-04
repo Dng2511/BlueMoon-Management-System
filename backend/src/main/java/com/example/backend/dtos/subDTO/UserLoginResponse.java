@@ -1,5 +1,7 @@
 package com.example.backend.dtos.subDTO;
 
+import com.example.backend.models.User;
+import com.example.backend.models.enums.Role;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -11,16 +13,13 @@ import lombok.experimental.FieldDefaults;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-@JsonPropertyOrder({
-        "username",
-        "password",
-})
-public class UserLoginForm {
-    String username;
+public class UserLoginResponse {
 
-    String password;
+    Role role;
 
-//    public static UserLoginForm fromEmailAndPassword(String email, String password) {
-//        return new UserLoginForm(email, password);
-//    }
+    public static UserLoginResponse fromEntity(User user) {
+        return new UserLoginResponse(
+                user.getRole()
+        );
+    }
 }

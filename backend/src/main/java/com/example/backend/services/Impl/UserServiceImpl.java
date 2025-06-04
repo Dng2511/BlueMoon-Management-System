@@ -2,6 +2,7 @@ package com.example.backend.services.Impl;
 
 import com.example.backend.dtos.UserDTO;
 import com.example.backend.dtos.subDTO.UserLoginForm;
+import com.example.backend.dtos.subDTO.UserLoginResponse;
 import com.example.backend.models.User;
 import com.example.backend.models.enums.Role;
 import com.example.backend.repositories.UserRepository;
@@ -85,14 +86,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDTO loginUser(UserLoginForm userLoginForm){
-        User user = userRepository.findByEmail(userLoginForm.getEmail())
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + userLoginForm.getEmail()));
+    public UserLoginResponse loginUser(UserLoginForm userLoginForm){
+        User user = userRepository.findByUsername(userLoginForm.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found with username: " + userLoginForm.getUsername()));
 
         if (!user.getPassword().equals(userLoginForm.getPassword())) {
             throw new RuntimeException("Invalid password");
         }
 
-        return UserDTO.fromEntity(user);
+        return UserLoginResponse.fromEntity(user);
     }
 }
