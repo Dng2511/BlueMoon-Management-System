@@ -2,7 +2,6 @@ package com.example.backend.controllers;
 
 import com.example.backend.dtos.UserDTO;
 import com.example.backend.dtos.subDTO.UserLoginForm;
-import com.example.backend.dtos.subDTO.UserLoginResponse;
 import com.example.backend.services.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +37,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserLoginResponse> loginUser(@RequestBody UserLoginForm userLoginForm) {
+    public ResponseEntity<UserDTO> loginUser(@RequestBody UserLoginForm userLoginForm) {
         return ResponseEntity.ok(userService.loginUser(userLoginForm));
     }
 }
