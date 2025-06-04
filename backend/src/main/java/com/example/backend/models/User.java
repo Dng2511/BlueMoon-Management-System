@@ -20,6 +20,8 @@ public class User {
 
     String username;
     String password;
+    
+    // @Column(unique = true, nullable = false)
     String email;
 
     @Enumerated(EnumType.STRING)
