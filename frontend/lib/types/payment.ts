@@ -31,6 +31,7 @@ export interface UpdatePaymentRequest {
   fee_id: number;
   quantity: number;
   payment_method?: string;
+  date_paid?: string | null;
 }
 
 export interface PaymentsResponse {
