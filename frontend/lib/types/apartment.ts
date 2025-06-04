@@ -1,46 +1,60 @@
-export interface ApartmentResident {
+export interface Resident {
   id: number;
   fullName: string;
+  dob: string;
+  cccd: string;
+  gender: string;
+  occupation: string;
+  avatar: string;
   relation: string;
+  phoneNumber: string;
+  stay_status: string;
 }
 
 export interface Apartment {
   id: number;
   name: string;
-  residents: ApartmentResident[];
-}
-
-export interface CreateApartmentRequest {
-  name: string;
-}
-
-export interface PaginationMetadata {
-  pageNumber: number;
-  pageSize: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  offset: number;
-  paged: boolean;
-  unpaged: boolean;
+  area: number;
+  residentCount: number;
+  date_created: string;
+  residents?: Resident[];
 }
 
 export interface ApartmentsResponse {
   content: Apartment[];
-  pageable: PaginationMetadata;
-  last: boolean;
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      sorted: boolean;
+      empty: boolean;
+      unsorted: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
   totalPages: number;
   totalElements: number;
+  last: boolean;
   size: number;
   number: number;
   sort: {
-    empty: boolean;
     sorted: boolean;
+    empty: boolean;
     unsorted: boolean;
   };
-  first: boolean;
   numberOfElements: number;
+  first: boolean;
   empty: boolean;
+}
+
+export interface CreateApartmentRequest {
+  name: string;
+  area: number;
+}
+
+export interface UpdateApartmentRequest {
+  name: string;
+  area: number;
 }

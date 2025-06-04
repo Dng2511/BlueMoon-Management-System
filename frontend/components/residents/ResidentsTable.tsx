@@ -79,6 +79,8 @@ import { format } from "date-fns";
 import { CreateResidentDialog } from "./CreateResidentDialog";
 import { UpdateResidentDialog } from "./UpdateResidentDialog";
 import { DeleteResidentDialog } from "./DeleteResidentDialog";
+import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ResidentsTableProps {
   residents: Resident[];
@@ -88,6 +90,7 @@ interface ResidentsTableProps {
   isCreating?: boolean;
   isUpdating?: boolean;
   isDeleting?: boolean;
+  apartmentId?: number;
 }
 
 function DragHandle({ id }: { id: number }) {
@@ -146,6 +149,7 @@ export function ResidentsTable({
   isCreating,
   isUpdating,
   isDeleting,
+  apartmentId,
 }: ResidentsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -161,6 +165,7 @@ export function ResidentsTable({
     pageSize: 10,
   });
   const [data, setData] = React.useState<Resident[]>(residents);
+  const [isBulkDeleting, setIsBulkDeleting] = React.useState(false);
 
   // Update data when residents prop changes
   React.useEffect(() => {
@@ -194,6 +199,35 @@ export function ResidentsTable({
       header: () => null,
       cell: ({ row }) => <DragHandle id={row.original.id} />,
     },
+    {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+
     {
       accessorKey: "id",
       header: "ID",
@@ -328,6 +362,22 @@ export function ResidentsTable({
     getSortedRowModel: getSortedRowModel(),
   });
 
+  // Batch delete handler
+  const handleBulkDelete = async () => {
+    if (!onDelete) return;
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    const selectedIds = selectedRows.map((row) => row.original.id);
+    setIsBulkDeleting(true);
+    try {
+      await Promise.all(selectedIds.map((id) => onDelete(id)));
+      setRowSelection({});
+    } catch (error) {
+      // handle error
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -371,7 +421,11 @@ export function ResidentsTable({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <CreateResidentDialog onSubmit={onCreate!} isLoading={isCreating} />
+        <CreateResidentDialog
+          onSubmit={onCreate!}
+          isLoading={isCreating}
+          apartmentId={apartmentId}
+        />
       </div>
       <div className="rounded-md border">
         <div className="relative w-full">
@@ -501,6 +555,34 @@ export function ResidentsTable({
           </div>
         </div>
       </div>
+      {table.getFilteredSelectedRowModel().rows.length > 0 && (
+        <ConfirmationDialog
+          trigger={
+            <Button
+              variant="destructive"
+              size="sm"
+              className="flex items-center gap-2"
+              disabled={isBulkDeleting}
+            >
+              {isBulkDeleting
+                ? "Deleting..."
+                : `Delete ${
+                    table.getFilteredSelectedRowModel().rows.length
+                  } selected`}
+            </Button>
+          }
+          title={`Delete ${
+            table.getFilteredSelectedRowModel().rows.length
+          } residents?`}
+          description={`This action cannot be undone. This will permanently delete ${
+            table.getFilteredSelectedRowModel().rows.length
+          } residents from the system.`}
+          confirmText={isBulkDeleting ? "Deleting..." : "Delete All"}
+          onConfirm={handleBulkDelete}
+          isConfirming={isBulkDeleting}
+          confirmButtonVariant="destructive"
+        />
+      )}
     </div>
   );
 }
