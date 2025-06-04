@@ -19,4 +19,7 @@ public interface FeeRepository extends JpaRepository<Fee, Long> {
 
     @Query("SELECT f FROM Fee f WHERE (:type IS NULL OR f.type LIKE %:type%)")
     Page<Fee> findByTypeContaining(@Param("type") String type, Pageable pageable);
+
+    @Query("SELECT COUNT(f) from Fee f WHERE f.month =:month")
+    Long countBy(@Param("month") Integer month);
 }

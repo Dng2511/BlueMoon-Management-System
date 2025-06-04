@@ -1,5 +1,6 @@
 package com.example.backend.dtos;
 
+import com.example.backend.dtos.subDTO.PaymentGroupByStatus;
 import com.example.backend.dtos.subDTO.ResidentGroupByRelation;
 import com.example.backend.dtos.subDTO.ResidentGroupByStayStatus;
 import com.example.backend.dtos.subDTO.Revenue;
@@ -30,7 +31,12 @@ public class DashboardDTO {
 
     private ResidentGroupByRelation residentGroupByRelation;
 
+    private Long totalFee;
+
+    private PaymentGroupByStatus paymentGroupByStatus;
+
     private List<Revenue> monthlyRevenues;
 
     private List<Revenue> annualRevenues;
+
 }
