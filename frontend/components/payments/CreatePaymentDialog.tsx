@@ -40,13 +40,7 @@ const formSchema = z.object({
   quantity: z.number(),
   payment_method: z.string().min(1, "Payment method is required"),
 }).superRefine((data, ctx) => {
-  if (data.payment_method === "not yet paid" && data.quantity !== 0) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Quantity must be 0 when payment method is 'Not Yet Paid'",
-      path: ["quantity"],
-    });
-  } else if (data.payment_method !== "not yet paid" && data.quantity <= 0) {
+  if (data.payment_method !== "not yet paid" && data.quantity <= 0) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: "Quantity must be greater than 0 for other payment methods",
@@ -69,6 +63,7 @@ export function CreatePaymentDialog({
   fees,
 }: CreatePaymentDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const [selectedFeeType, setSelectedFeeType] = React.useState<string>("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -81,13 +76,12 @@ export function CreatePaymentDialog({
   });
 
   const paymentMethod = form.watch("payment_method");
+
   React.useEffect(() => {
-    if (paymentMethod === "not yet paid") {
-      form.setValue("quantity", 0);
-    } else if (form.getValues("quantity") === 0) {
+    if (selectedFeeType !== "area") {
       form.setValue("quantity", 1);
     }
-  }, [paymentMethod, form]);
+  }, [selectedFeeType, form]);
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
@@ -152,7 +146,11 @@ export function CreatePaymentDialog({
                   <FormItem>
                     <FormLabel>Fee Type</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(Number(value))}
+                      onValueChange={(value) => {
+                        field.onChange(Number(value));
+                        const selectedFee = fees.find(fee => fee.id === Number(value));
+                        setSelectedFeeType(selectedFee?.type || "");
+                      }}
                       defaultValue={field.value?.toString()}
                     >
                       <FormControl>
@@ -213,7 +211,7 @@ export function CreatePaymentDialog({
                         placeholder="Enter quantity"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
-                        disabled={paymentMethod === "not yet paid"}
+                        disabled={selectedFeeType !== "area"}
                       />
                     </FormControl>
                     <FormMessage />

@@ -58,6 +58,7 @@ import {
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import { toast } from "sonner"
 import { z } from "zod"
+import { ArrowUpDown } from "lucide-react"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
@@ -118,7 +119,7 @@ import { CreatePaymentDialog } from "./CreatePaymentDialog"
 import { UpdatePaymentDialog } from "./UpdatePaymentDialog"
 
 interface PaymentsTableProps {
-  paymentsResponse: PaymentsResponse;
+  paymentsResponse: PaymentsResponse | undefined;
   onPageChange: (page: number, pageSize: number) => void;
   onDelete?: (id: number) => Promise<void>;
   onBulkDelete?: (ids: number[]) => Promise<void>;
@@ -222,8 +223,23 @@ export function PaymentsTable({
     },
     {
       accessorKey: "amountPaid",
-      header: "Amount Paid",
-      cell: ({ row }) => row.original.amountPaid === 0 ? "-" : new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(row.original.amountPaid),
+      header: ({ column }) => (
+        <div className="w-32 text-center">
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto font-medium hover:bg-transparent"
+          >
+            Amount Paid
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="w-32 text-right font-medium">
+          {row.original.amountPaid === 0 ? "-" : new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(row.original.amountPaid)}
+        </div>
+      ),
     },
     { accessorKey: "payment_method", header: "Payment Method", cell: ({ row }) => (
       <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -235,7 +251,26 @@ export function PaymentsTable({
         {row.original.status}
       </Badge>
     ) },
-    { accessorKey: "date_paid", header: "Updated Date", cell: ({ row }) => row.original.date_paid ? new Date(row.original.date_paid).toLocaleDateString() : "-" },
+    { 
+      accessorKey: "date_paid", 
+      header: ({ column }) => (
+        <div className="w-32 text-center">
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="h-auto font-medium hover:bg-transparent"
+          >
+            Updated Date
+            <ArrowUpDown className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="w-32 text-center">
+          {row.original.date_paid ? new Date(row.original.date_paid).toLocaleDateString() : "-"}
+        </div>
+      ),
+    },
     {
       id: "actions",
       cell: ({ row }) => {

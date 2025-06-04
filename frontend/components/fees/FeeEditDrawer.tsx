@@ -35,6 +35,7 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { UpdateFeeRequest } from "@/lib/types/fee"
 import { MonthSelect } from "@/components/ui/month-select"
+import { Switch } from "@/components/ui/switch"
 
 const chartData = [
   { month: "January", desktop: 186, mobile: 80 },
@@ -84,6 +85,7 @@ export function FeeEditDrawer({
 }: FeeEditDrawerProps) {
   const isMobile = useIsMobile()
   const [internalOpen, setInternalOpen] = React.useState(false)
+  const [isAreaFee, setIsAreaFee] = React.useState(item.type === "area")
   
   // Use external open state if provided, otherwise use internal state
   const isOpen = externalOpen !== undefined ? externalOpen : internalOpen
@@ -124,8 +126,20 @@ export function FeeEditDrawer({
         description: item.description,
         compulsory: item.compulsory,
       })
+      setIsAreaFee(item.type === "area")
     }
   }, [item, isOpen])
+
+  // Cập nhật giá trị type và compulsory khi toggle thay đổi
+  React.useEffect(() => {
+    if (isAreaFee) {
+      setFormData(prev => ({
+        ...prev,
+        type: "area",
+        compulsory: true
+      }))
+    }
+  }, [isAreaFee])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -225,13 +239,28 @@ export function FeeEditDrawer({
           )}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-3">
-              <Label htmlFor="type">Fee Type</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="type">Fee Type</Label>
+                <div className="flex items-center space-x-2">
+                  <Label htmlFor="area-fee" className="text-sm text-muted-foreground">Phí diện tích</Label>
+                  <Switch
+                    id="area-fee"
+                    checked={isAreaFee}
+                    onCheckedChange={setIsAreaFee}
+                  />
+                </div>
+              </div>
               <Input 
                 id="type" 
-                value={formData.type}
-                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
+                value={isAreaFee ? "area" : formData.type}
+                onChange={(e) => {
+                  if (!isAreaFee) {
+                    setFormData(prev => ({ ...prev, type: e.target.value }))
+                  }
+                }}
                 placeholder="Enter fee type"
                 required
+                disabled={isAreaFee}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -269,6 +298,7 @@ export function FeeEditDrawer({
               <Select 
                 value={formData.compulsory ? "true" : "false"} 
                 onValueChange={(value) => setFormData(prev => ({ ...prev, compulsory: value === "true" }))}
+                disabled={isAreaFee}
               >
                 <SelectTrigger id="compulsory" className="w-full">
                   <SelectValue placeholder="Is this fee compulsory?" />

@@ -16,7 +16,7 @@ import { usePayments } from "@/lib/hooks/use-payments";
 import { Fee } from "@/lib/types/fee";
 import { FeesDetailCard } from "@/components/fees/FeesDetailCard";
 import { useResidents } from "@/lib/hooks/use-residents";
-import { CreatePaymentRequest } from "@/lib/types/payment";
+import { CreatePaymentRequest, UpdatePaymentRequest } from "@/lib/types/payment";
 
 interface FeeDetailPageProps {
   params: Promise<{
@@ -71,7 +71,8 @@ export default function FeeDetailPage({ params, searchParams }: FeeDetailPagePro
   const { 
     deletePayment, 
     bulkDeletePayments,
-    createPayment
+    createPayment,
+    updatePayment,
   } = usePayments({ feeId });
 
   if (feeLoading) {
@@ -88,6 +89,11 @@ export default function FeeDetailPage({ params, searchParams }: FeeDetailPagePro
     if (pageSize !== pagination.pageSize) {
       pagination.setPageSize(pageSize);
     }
+  };
+
+  const handleUpdatePayment = async (id: number, data: UpdatePaymentRequest) => {
+    data.fee_id = feeId;
+    await updatePayment.mutateAsync({ id, data });
   };
 
   const handleDeletePayment = async (id: number) => {
@@ -128,7 +134,7 @@ export default function FeeDetailPage({ params, searchParams }: FeeDetailPagePro
 
   // Calculate values for FeesDetailCard
   const totalPayments = paymentsForTable?.content?.reduce((sum, payment) => sum + (payment.amountPaid * payment.quantity || 0), 0) || 0;
-  const notYetPaidCount = paymentsForTable?.content?.filter(payment => payment.status === "not_yet_paid").length || 0;
+  const notYetPaidCount = paymentsForTable?.content?.filter(payment => payment.status === "not yet paid").length || 0;
 
   const currentFee = preloadedFeeDetails ? {
     id: preloadedFeeDetails.id,
@@ -166,6 +172,7 @@ export default function FeeDetailPage({ params, searchParams }: FeeDetailPagePro
           onDelete={handleDeletePayment}
           onBulkDelete={handleBulkDeletePayments}
           onCreate={handleCreatePayment}
+          onUpdate={handleUpdatePayment}
           isDeleting={deletePayment.isPending || bulkDeletePayments.isPending}
           isCreating={createPayment.isPending}
           residents={residentsList}

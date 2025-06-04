@@ -7,10 +7,10 @@ interface UsePaymentsParams {
   page?: number;
   limit?: number;
   feeId?: number;
-  feeType?: string;
+  search?: string;
 }
 
-type UpdatePaymentData = Partial<Omit<Payment, 'id' | 'resident' | 'fee'> & { residentId?: number; feeId?: number }>;
+type UpdatePaymentData = Partial<Omit<Payment, 'id' | 'resident' | 'fee'> & { residentId?: number; feeId?: number; date_paid?: string | null }>;
 
 export function usePayments(params?: UsePaymentsParams) {
   const queryClient = useQueryClient();
@@ -87,7 +87,7 @@ export function usePayments(params?: UsePaymentsParams) {
   });
 
   const searchPayments = useMutation({
-    mutationFn: (query: string) => paymentsApi.getPayments({ ...params, feeType: query }),
+    mutationFn: (query: string) => paymentsApi.getPayments({ ...params, search: query }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
