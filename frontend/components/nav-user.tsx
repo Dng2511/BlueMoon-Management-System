@@ -25,6 +25,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+function handleLogout() {
+  // Optionally, clear any auth tokens/cookies here
+  localStorage.removeItem("User");
+  window.location.href = "/auth";
+}
+
+function handleProfile() {
+  window.location.href = "/profile";
+}
+
 export function NavUser({
   user,
 }: {
@@ -80,7 +90,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleProfile}>
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
@@ -94,7 +104,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
