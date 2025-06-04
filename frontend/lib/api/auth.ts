@@ -1,7 +1,7 @@
 import { publicApi } from "./client"
 
-export async function loginUser(email: string, password: string) {
-  const response = await publicApi.post("/users/login", { email, password });
+export async function loginUser(username: string, password: string) {
+  const response = await publicApi.post("/users/login", { username, password });
   return response.data;
 }
 

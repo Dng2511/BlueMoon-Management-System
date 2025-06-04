@@ -23,7 +23,8 @@ export default function ProfilePage() {
   const [formData, setFormData] = React.useState({
     username: "",
     email: "",
-    avatar: ""
+    avatar: "",
+    role: ""
   })
   const [passwordData, setPasswordData] = React.useState({
     currentPassword: "",
@@ -47,7 +48,8 @@ export default function ProfilePage() {
       setFormData({
         username: parsedData.username,
         email: parsedData.email,
-        avatar: parsedData.avatar || "/avatars/admin.png"
+        avatar: parsedData.role === "ADMIN" ? "/avatars/admin.png" : "/avatars/staff.png",
+        role: parsedData.role
       })
     } catch (error) {
       console.error("Error parsing user data:", error)
@@ -196,6 +198,9 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <div className="text-2xl font-semibold leading-tight">{formData.username}</div>
                 <div className="text-muted-foreground text-base">{formData.email}</div>
+                <div className="text-sm font-medium px-3 py-1 rounded-full bg-primary/10 text-primary w-fit">
+                  Role: {formData.role}
+                </div>
               </div>
             </div>
             <CardTitle className="sr-only">Profile Information</CardTitle>
