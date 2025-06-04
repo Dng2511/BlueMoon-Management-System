@@ -56,5 +56,20 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             @Param("endYear") Integer endYear
     );
 
+    @Query("SELECT COUNT(p) FROM Payment p " +
+            "JOIN p.fee f " +
+            "WHERE (p.status = :status AND f.month = :month AND f.year = :year) ")
+    Long countPaymentByStatus(@Param("status") String status,
+                              @Param("month") Integer month,
+                              @Param("year") Integer year);
+
+    @Query("SELECT COUNT(p) FROM Payment p " +
+            "JOIN p.fee f " +
+            "WHERE p.status = 'not yet paid' AND " +
+            "(f.year < :year OR (f.year = :year AND f.month < :month))")
+    Long countNotYetPaidFromPreviousMonth(@Param("month") Integer month, @Param("year") Integer year);
+
+
+
 
 }
