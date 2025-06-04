@@ -7,6 +7,7 @@ interface UsePaymentsParams {
   page?: number;
   limit?: number;
   feeId?: number;
+  feeType?: string;
 }
 
 type UpdatePaymentData = Partial<Omit<Payment, 'id' | 'resident' | 'fee'> & { residentId?: number; feeId?: number }>;
@@ -85,11 +86,22 @@ export function usePayments(params?: UsePaymentsParams) {
     },
   });
 
+  const searchPayments = useMutation({
+    mutationFn: (query: string) => paymentsApi.getPayments({ ...params, feeType: query }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+    },
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to search payments");
+    },
+  });
+
   return {
     payments: paymentsData,
     deletePayment,
     bulkDeletePayments,
     createPayment,
     updatePayment,
+    searchPayments,
   };
 }

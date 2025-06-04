@@ -5,7 +5,7 @@ import { PaymentsResponse } from "../types/payment";
 
 export const feesApi = {
   getFees: async (params?: PaginationParams) => {
-    const response = await privateApi.get<FeesResponse>("/fees", { params });
+    const response = await privateApi.get<FeesResponse>("/fees/search", { params });
     return response.data;
   },
 

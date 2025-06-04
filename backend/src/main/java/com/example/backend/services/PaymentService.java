@@ -20,5 +20,6 @@ public interface PaymentService {
 
     void save(Fee fee, Resident Resident);
 
-    public Page<PaymentDTO> searchPayments(String feeType, String residentId, String apartmentName, Pageable pageable);
+    public Page<PaymentDTO> searchPayments(String search, Pageable pageable);
+
 }

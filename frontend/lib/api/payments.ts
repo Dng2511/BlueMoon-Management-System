@@ -4,11 +4,12 @@ import { Payment, PaymentsResponse, CreatePaymentRequest } from "../types/paymen
 interface GetPaymentsParams {
   page?: number;
   limit?: number;
+  feeType?: string;
 }
 
 export const paymentsApi = {
   getPayments: async (params?: GetPaymentsParams) => {
-    const response = await privateApi.get<PaymentsResponse>("/payments", {
+    const response = await privateApi.get<PaymentsResponse>("/payments/search", {
       params,
     });
     return response.data;

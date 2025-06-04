@@ -42,6 +42,7 @@ export default function PaymentsPage() {
     bulkDeletePayments,
     createPayment,
     payments: paymentsResponse,
+    searchPayments,
   } = usePayments({
     page: pagination.currentPage,
     limit: pagination.pageSize,
@@ -61,6 +62,10 @@ export default function PaymentsPage() {
     if (pageSize !== pagination.pageSize) {
       pagination.setPageSize(pageSize);
     }
+  };
+
+  const handleSearch = async (query: string) => {
+    await searchPayments.mutateAsync(query);
   };
 
   const handleDeletePayment = async (id: number) => {
@@ -110,6 +115,7 @@ export default function PaymentsPage() {
         onDelete={handleDeletePayment}
         onBulkDelete={handleBulkDeletePayments}
         onCreate={handleCreatePayment}
+        onSearch={handleSearch}
         isDeleting={deletePayment.isPending || bulkDeletePayments.isPending}
         isCreating={createPayment.isPending}
         residents={residentsList}
