@@ -4,12 +4,12 @@ import { Payment, PaymentsResponse, CreatePaymentRequest } from "../types/paymen
 interface GetPaymentsParams {
   page?: number;
   limit?: number;
-  feeType?: string;
+  search?: string;
 }
 
 export const paymentsApi = {
   getPayments: async (params?: GetPaymentsParams) => {
-    const response = await privateApi.get<PaymentsResponse>("/payments/search", {
+    const response = await privateApi.get<PaymentsResponse>("/payments", {
       params,
     });
     return response.data;
@@ -35,7 +35,11 @@ export const paymentsApi = {
     return response.data;
   },
 
-  updatePayment: async (id: number, data: Partial<Omit<Payment, 'id' | 'resident' | 'fee'> & { residentId?: number; feeId?: number }>) => {
+  updatePayment: async (id: number, data: Partial<Omit<Payment, 'id' | 'resident' | 'fee'> & { 
+    residentId?: number; 
+    feeId?: number;
+    date_paid?: string | null;
+  }>) => {
     const response = await privateApi.put<Payment>(`/payments/${id}`, data);
     return response.data;
   },

@@ -34,6 +34,8 @@ import {
 import { CreateFeeRequest } from "@/lib/types/fee";
 import { IconPlus } from "@tabler/icons-react";
 import { MonthSelect } from "@/components/ui/month-select";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const formSchema = z.object({
   type: z.string().min(2, "Fee type must be at least 2 characters"),
@@ -53,6 +55,7 @@ export function CreateFeeDialog({
   isLoading,
 }: CreateFeeDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const [isAreaFee, setIsAreaFee] = React.useState(true);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,6 +77,16 @@ export function CreateFeeDialog({
       console.error("Failed to create fee:", error);
     }
   };
+
+  // Cập nhật giá trị type và compulsory khi toggle thay đổi
+  React.useEffect(() => {
+    if (isAreaFee) {
+      form.setValue("type", "area");
+      form.setValue("compulsory", true);
+    } else {
+      form.setValue("type", "");
+    }
+  }, [isAreaFee, form]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -101,9 +114,29 @@ export function CreateFeeDialog({
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fee Type</FormLabel>
+                    <div className="flex items-center justify-between">
+                      <FormLabel>Fee Type</FormLabel>
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor="area-fee" className="text-sm text-muted-foreground">Phí diện tích</Label>
+                        <Switch
+                          id="area-fee"
+                          checked={isAreaFee}
+                          onCheckedChange={setIsAreaFee}
+                        />
+                      </div>
+                    </div>
                     <FormControl>
-                      <Input placeholder="Enter fee type" {...field} />
+                      <Input 
+                        placeholder="Enter fee type" 
+                        {...field} 
+                        disabled={isAreaFee}
+                        value={isAreaFee ? "area" : field.value}
+                        onChange={(e) => {
+                          if (!isAreaFee) {
+                            field.onChange(e.target.value);
+                          }
+                        }}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -173,6 +206,7 @@ export function CreateFeeDialog({
                     <Select
                       onValueChange={(value) => field.onChange(value === "true")}
                       defaultValue={field.value ? "true" : "false"}
+                      disabled={isAreaFee}
                     >
                       <FormControl>
                         <SelectTrigger>

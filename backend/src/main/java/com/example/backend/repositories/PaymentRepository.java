@@ -1,15 +1,16 @@
 package com.example.backend.repositories;
 
 
-import com.example.backend.dtos.subDTO.Revenue;
-import com.example.backend.models.Payment;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+import com.example.backend.dtos.subDTO.Revenue;
+import com.example.backend.models.Payment;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Override
@@ -24,7 +25,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             "JOIN p.fee f " +
             "JOIN p.resident r " +
             "JOIN r.apartment a " +
-            "WHERE (:search IS NULL OR f.type LIKE %:search% OR r.cccd LIKE %:search% OR r.fullName LIKE %:search% OR a.name LIKE %:apartmentName%)")
+            "WHERE (:search IS NULL OR f.type LIKE %:search% OR r.cccd LIKE %:search% OR r.fullName LIKE %:search% OR a.name LIKE %:search%)")
     Page<Payment> searchPayments(
             @Param("search") String search,
             Pageable pageable);

@@ -35,23 +35,7 @@ import { Payment, UpdatePaymentRequest } from "@/lib/types/payment";
 
 const formSchema = z.object({
   resident_id: z.string().min(1, "Resident is required"),
-  fee_id: z.string().min(1, "Fee is required"),
-  quantity: z.coerce.number(),
   payment_method: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if (data.payment_method === "not yet paid" && data.quantity !== 0) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Quantity must be 0 when payment method is 'Not Yet Paid'",
-      path: ["quantity"],
-    });
-  } else if (data.payment_method !== "not yet paid" && data.quantity <= 0) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Quantity must be greater than 0 for other payment methods",
-      path: ["quantity"],
-    });
-  }
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -77,29 +61,46 @@ export function UpdatePaymentDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       resident_id: payment.resident.id.toString(),
-      fee_id: payment.fee?.id.toString() || "",
-      quantity: payment.quantity,
       payment_method: payment.status || undefined,
     },
   });
 
-  const paymentMethod = form.watch("payment_method");
-  React.useEffect(() => {
-    if (paymentMethod === "not yet paid") {
-      form.setValue("quantity", 0);
-    } else if (form.getValues("quantity") === 0) {
-      form.setValue("quantity", 1);
-    }
-  }, [paymentMethod, form]);
-
   const handleSubmit = async (values: FormValues) => {
     try {
-      await onSubmit?.({
+      // Kiểm tra xem có sự thay đổi nào không
+      const hasChanges = 
+        parseInt(values.resident_id) !== payment.resident.id ||
+        values.payment_method !== payment.status;
+
+      if (!hasChanges) {
+        setOpen(false);
+        return;
+      }
+
+      // Xử lý date_paid
+      let date_paid: string | null = null;
+      if (values.payment_method && values.payment_method !== "not yet paid") {
+        // Nếu payment method mới khác "not yet paid" và khác với payment method cũ
+        if (values.payment_method !== payment.status) {
+          date_paid = new Date().toISOString();
+        } else {
+          // Nếu payment method không thay đổi, giữ nguyên date_paid cũ
+          date_paid = payment.date_paid;
+        }
+      }
+
+      const updateData = {
         resident_id: parseInt(values.resident_id),
-        fee_id: parseInt(values.fee_id),
-        quantity: values.quantity,
+        fee_id: payment.fee?.id || 0,
+        quantity: payment.quantity,
         payment_method: values.payment_method,
-      });
+        date_paid,
+      };
+
+      console.log('Current payment:', payment);
+      console.log('Update data:', updateData);
+
+      await onSubmit?.(updateData);
       setOpen(false);
     } catch (error) {
       console.error("Failed to update payment:", error);
@@ -157,36 +158,6 @@ export function UpdatePaymentDialog({
             />
             <FormField
               control={form.control}
-              name="fee_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Fee Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select fee type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {fees.map((fee) => (
-                        <SelectItem
-                          key={fee.id}
-                          value={fee.id.toString()}
-                        >
-                          {fee.type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
               name="payment_method"
               render={({ field }) => (
                 <FormItem>
@@ -208,26 +179,6 @@ export function UpdatePaymentDialog({
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
                   </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Quantity</FormLabel>
-                  <FormControl>
-                    <Input 
-                      type="number" 
-                      min="1"
-                      placeholder="Enter quantity" 
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                      disabled={paymentMethod === "not yet paid"}
-                    />
-                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

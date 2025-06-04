@@ -13,10 +13,11 @@ import { usePagination } from "@/lib/hooks/use-pagination";
 import { usePayments } from "@/lib/hooks/use-payments";
 import { useResidents } from "@/lib/hooks/use-residents";
 import { useFees } from "@/lib/hooks/use-fees";
-import { CreatePaymentRequest } from "@/lib/types/payment";
+import { CreatePaymentRequest, UpdatePaymentRequest } from "@/lib/types/payment";
 
 export default function PaymentsPage() {
   const router = useRouter();
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const pagination = usePagination({
     initialPage: 1,
@@ -43,12 +44,22 @@ export default function PaymentsPage() {
     createPayment,
     payments: paymentsResponse,
     searchPayments,
+    updatePayment,
   } = usePayments({
     page: pagination.currentPage,
     limit: pagination.pageSize,
+    search: searchQuery || undefined,
   });
 
-  if (paymentsResponse.isLoading) {
+  const isFirstMount = React.useRef(true);
+
+  React.useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+    }
+  }, []);
+
+  if (paymentsResponse.isLoading && isFirstMount.current) {
     return (
       <div className="flex flex-col gap-6 py-6 px-12">
         <Skeleton className="h-8 w-full mb-4" />
@@ -65,7 +76,8 @@ export default function PaymentsPage() {
   };
 
   const handleSearch = async (query: string) => {
-    await searchPayments.mutateAsync(query);
+    setSearchQuery(query);
+    // await searchPayments.mutateAsync(query);
   };
 
   const handleDeletePayment = async (id: number) => {
@@ -80,7 +92,11 @@ export default function PaymentsPage() {
     await createPayment.mutateAsync(data);
   };
 
-  if (!paymentsResponse.data) {
+  const handleUpdatePayment = async (id: number, data: UpdatePaymentRequest) => {
+    await updatePayment.mutateAsync({ id, data });
+  };
+
+  if (paymentsResponse.isError) {
     return (
       <div className="flex flex-col gap-6 py-6 px-12">
         <div className="flex items-center gap-4">
@@ -102,7 +118,6 @@ export default function PaymentsPage() {
     );
   }
 
-
   return (
     <div className="flex flex-col gap-4 py-6 md:gap-6 px-12">
       <div className="px-4 lg:px-6">
@@ -116,6 +131,7 @@ export default function PaymentsPage() {
         onBulkDelete={handleBulkDeletePayments}
         onCreate={handleCreatePayment}
         onSearch={handleSearch}
+        onUpdate={handleUpdatePayment}
         isDeleting={deletePayment.isPending || bulkDeletePayments.isPending}
         isCreating={createPayment.isPending}
         residents={residentsList}
