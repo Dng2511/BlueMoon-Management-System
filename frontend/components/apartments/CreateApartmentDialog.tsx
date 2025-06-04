@@ -29,6 +29,7 @@ import { CreateApartmentRequest } from "@/lib/types/apartment";
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
+  area: z.number().min(1, "Area must be greater than 0"),
 });
 
 interface CreateApartmentDialogProps {
@@ -45,6 +46,7 @@ export function CreateApartmentDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      area: 0,
     },
   });
 
@@ -86,6 +88,24 @@ export function CreateApartmentDialog({
                   <FormLabel>Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter apartment name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="area"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Area (m²)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="Enter area"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

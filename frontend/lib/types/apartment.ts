@@ -1,13 +1,23 @@
 export interface Resident {
   id: number;
   fullName: string;
+  dob: string;
+  cccd: string;
+  gender: string;
+  occupation: string;
+  avatar: string;
   relation: string;
+  phoneNumber: string;
+  stay_status: string;
 }
 
 export interface Apartment {
   id: number;
   name: string;
-  residents: Resident[];
+  area: number;
+  residentCount: number;
+  date_created: string;
+  residents?: Resident[];
 }
 
 export interface ApartmentsResponse {
@@ -41,8 +51,10 @@ export interface ApartmentsResponse {
 
 export interface CreateApartmentRequest {
   name: string;
+  area: number;
 }
 
 export interface UpdateApartmentRequest {
   name: string;
+  area: number;
 }

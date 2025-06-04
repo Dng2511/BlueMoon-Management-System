@@ -104,25 +104,25 @@ export function ApartmentsTable({
       cell: ({ row }) => <div className="w-32">{row.getValue("name")}</div>,
     },
     {
-      accessorKey: "residents",
+      accessorKey: "area",
+      header: "Area",
+      cell: ({ row }) => <div className="w-20">{row.getValue("area")} m²</div>,
+    },
+    {
+      accessorKey: "residentCount",
       header: "Residents",
-      cell: ({ row }) => {
-        const residents = row.original.residents;
-        return (
-          <div className="space-y-1">
-            {residents.length === 0 ? (
-              <span className="text-muted-foreground">No residents</span>
-            ) : (
-              residents.map((resident) => (
-                <div key={resident.id} className="flex items-center gap-2">
-                  <span>{resident.fullName}</span>
-                  <Badge variant="secondary">{resident.relation}</Badge>
-                </div>
-              ))
-            )}
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <div className="w-20">{row.getValue("residentCount")}</div>
+      ),
+    },
+    {
+      accessorKey: "date_created",
+      header: "Created Date",
+      cell: ({ row }) => (
+        <div className="w-32">
+          {new Date(row.getValue("date_created")).toLocaleDateString()}
+        </div>
+      ),
     },
     {
       id: "actions",
