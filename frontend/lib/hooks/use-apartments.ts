@@ -94,7 +94,7 @@ export function useApartments(params?: {
   };
 }
 
-export function useApartment(id?: number) {
+export function useApartment(id?: number, refreshKey?: number) {
   const [apartment, setApartment] = useState<Apartment | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
@@ -118,7 +118,7 @@ export function useApartment(id?: number) {
       .finally(() => {
         setIsLoading(false);
       });
-  }, [id]);
+  }, [id, refreshKey]);
 
   return { apartment, isLoading, isError, error };
 }

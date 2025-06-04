@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use } from "react";
+import React, { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { ResidentsTable } from "@/components/residents/ResidentsTable";
 import { Badge } from "@/components/ui/badge";
 import { useApartment } from "@/lib/hooks/use-apartments";
 import { format } from "date-fns";
+import { useResidents } from "@/lib/hooks/use-residents";
 
 export default function ApartmentDetailPage({
   params,
@@ -31,6 +32,107 @@ export default function ApartmentDetailPage({
   const resolvedParams = use(params);
   const id = Number(resolvedParams.id);
   const { apartment, isLoading, isError, error } = useApartment(id);
+  const { createResident, updateResident, deleteResident } = useResidents();
+
+  // Local state for residents
+  const [residents, setResidents] = useState<any[]>([]);
+
+  // Sync local state with fetched data
+  useEffect(() => {
+    if (apartment?.residents) {
+      setResidents(
+        apartment.residents.map((r) => ({
+          ...r,
+          apartment: { id: apartment.id, name: apartment.name },
+          relation: r.relation as import("@/lib/types/resident").Relation,
+          stay_status:
+            r.stay_status as import("@/lib/types/resident").StayStatus,
+        }))
+      );
+    }
+  }, [apartment]);
+
+  // Local update handlers
+  const handleCreateResident = async (data: any) => {
+    let newResident: any = undefined;
+    try {
+      newResident = await createResident.mutateAsync(data);
+    } catch (e) {
+      return;
+    }
+    if ((!newResident && newResident !== 0) || !apartment) {
+      newResident = {};
+    }
+    setResidents((prev) => [
+      ...prev,
+      {
+        ...(typeof newResident === "object" ? newResident : {}),
+        fullName: newResident.fullName ?? data.fullName,
+        dob: newResident.dob ?? data.dob,
+        cccd: newResident.cccd ?? data.cccd,
+        gender: newResident.gender ?? data.gender,
+        occupation: newResident.occupation ?? data.occupation,
+        phoneNumber: newResident.phoneNumber ?? data.phoneNumber,
+        apartment: { id: apartment?.id ?? 0, name: apartment?.name ?? "" },
+        relation: (newResident.relation ??
+          data.relation) as import("@/lib/types/resident").Relation,
+        stay_status: (newResident.stay_status ??
+          data.stay_status) as import("@/lib/types/resident").StayStatus,
+        id: newResident.id ?? Math.random(), // fallback id
+        avatar: newResident.avatar ?? "default.jpg",
+      },
+    ]);
+  };
+
+  const handleEditResident = async (rid: number, data: any) => {
+    let updatedResident: any = undefined;
+    try {
+      updatedResident = await updateResident.mutateAsync(rid, data);
+    } catch (e) {
+      return;
+    }
+    if ((!updatedResident && updatedResident !== 0) || !apartment) {
+      updatedResident = {};
+    }
+    if (!apartment) return;
+    if (
+      (updatedResident.apartmentId ?? data.apartmentId) != null &&
+      Number(updatedResident.apartmentId ?? data.apartmentId) !== apartment.id
+    ) {
+      setResidents((prev) => prev.filter((r) => r.id !== rid));
+      return;
+    }
+    setResidents((prev) =>
+      prev.map((r) =>
+        r.id === rid
+          ? {
+              ...(typeof updatedResident === "object" ? updatedResident : {}),
+              fullName: updatedResident.fullName ?? data.fullName,
+              dob: updatedResident.dob ?? data.dob,
+              cccd: updatedResident.cccd ?? data.cccd,
+              gender: updatedResident.gender ?? data.gender,
+              occupation: updatedResident.occupation ?? data.occupation,
+              phoneNumber: updatedResident.phoneNumber ?? data.phoneNumber,
+              apartment: {
+                id: apartment?.id ?? 0,
+                name: apartment?.name ?? "",
+              },
+              relation: (updatedResident.relation ??
+                data.relation) as import("@/lib/types/resident").Relation,
+              stay_status: (updatedResident.stay_status ??
+                data.stay_status) as import("@/lib/types/resident").StayStatus,
+              id: updatedResident.id ?? rid,
+              avatar: updatedResident.avatar ?? "default.jpg",
+            }
+          : r
+      )
+    );
+  };
+
+  const handleDeleteResident = async (rid: number) => {
+    await deleteResident.mutateAsync(rid);
+    setResidents((prev) => prev.filter((r) => r.id !== rid));
+  };
 
   if (isLoading) {
     return (
@@ -142,13 +244,11 @@ export default function ApartmentDetailPage({
         Residents in this Apartment
       </h2>
       <ResidentsTable
-        residents={(apartment.residents || []).map((r) => ({
-          ...r,
-          apartment: { id: apartment.id, name: apartment.name },
-          relation: r.relation as import("@/lib/types/resident").Relation,
-          stay_status:
-            r.stay_status as import("@/lib/types/resident").StayStatus,
-        }))}
+        residents={residents}
+        onCreate={handleCreateResident}
+        onEdit={handleEditResident}
+        onDelete={handleDeleteResident}
+        apartmentId={apartment?.id}
       />
     </div>
   );

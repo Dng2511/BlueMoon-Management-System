@@ -90,6 +90,7 @@ interface ResidentsTableProps {
   isCreating?: boolean;
   isUpdating?: boolean;
   isDeleting?: boolean;
+  apartmentId?: number;
 }
 
 function DragHandle({ id }: { id: number }) {
@@ -148,6 +149,7 @@ export function ResidentsTable({
   isCreating,
   isUpdating,
   isDeleting,
+  apartmentId,
 }: ResidentsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -193,6 +195,11 @@ export function ResidentsTable({
 
   const columns: ColumnDef<Resident>[] = [
     {
+      id: "drag",
+      header: () => null,
+      cell: ({ row }) => <DragHandle id={row.original.id} />,
+    },
+    {
       id: "select",
       header: ({ table }) => (
         <div className="flex items-center justify-center">
@@ -220,11 +227,7 @@ export function ResidentsTable({
       enableSorting: false,
       enableHiding: false,
     },
-    {
-      id: "drag",
-      header: () => null,
-      cell: ({ row }) => <DragHandle id={row.original.id} />,
-    },
+
     {
       accessorKey: "id",
       header: "ID",
@@ -418,7 +421,11 @@ export function ResidentsTable({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <CreateResidentDialog onSubmit={onCreate!} isLoading={isCreating} />
+        <CreateResidentDialog
+          onSubmit={onCreate!}
+          isLoading={isCreating}
+          apartmentId={apartmentId}
+        />
       </div>
       <div className="rounded-md border">
         <div className="relative w-full">

@@ -147,3 +147,7 @@ body[style*="--"] {
   margin-right: 0 !important;
   padding-right: 0 !important;
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
