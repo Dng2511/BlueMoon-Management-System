@@ -5,4 +5,6 @@ export const API_ENDPOINTS = {
   residents: "/residents",
   apartments: "/apartments",
   fees: "/fees",
+  payments: "/payments",
+  auth: "/auth",
 } as const;
