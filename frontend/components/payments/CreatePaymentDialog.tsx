@@ -34,20 +34,22 @@ import {
 import { IconPlus } from "@tabler/icons-react";
 import { CreatePaymentRequest } from "@/lib/types/payment";
 
-const formSchema = z.object({
-  resident_id: z.number().min(1, "Resident is required"),
-  fee_id: z.number().min(1, "Fee is required"),
-  quantity: z.number(),
-  payment_method: z.string().min(1, "Payment method is required"),
-}).superRefine((data, ctx) => {
-  if (data.payment_method !== "not yet paid" && data.quantity <= 0) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Quantity must be greater than 0 for other payment methods",
-      path: ["quantity"],
-    });
-  }
-});
+const formSchema = z
+  .object({
+    resident_id: z.number().min(1, "Resident is required"),
+    fee_id: z.number().min(1, "Fee is required"),
+    quantity: z.number(),
+    payment_method: z.string().min(1, "Payment method is required"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.payment_method !== "not yet paid" && data.quantity <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Quantity must be greater than 0 for other payment methods",
+        path: ["quantity"],
+      });
+    }
+  });
 
 interface CreatePaymentDialogProps {
   onSubmit: (data: CreatePaymentRequest) => Promise<void>;
@@ -109,7 +111,10 @@ export function CreatePaymentDialog({
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
@@ -128,8 +133,14 @@ export function CreatePaymentDialog({
                       </FormControl>
                       <SelectContent>
                         {residents.map((resident) => (
-                          <SelectItem key={resident.id} value={resident.id.toString()}>
-                            {resident.fullName} {resident.apartment ? `(${resident.apartment})` : ""}
+                          <SelectItem
+                            key={resident.id}
+                            value={resident.id.toString()}
+                          >
+                            {resident.fullName}{" "}
+                            {resident.apartment
+                              ? `(${resident.apartment})`
+                              : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -148,7 +159,9 @@ export function CreatePaymentDialog({
                     <Select
                       onValueChange={(value) => {
                         field.onChange(Number(value));
-                        const selectedFee = fees.find(fee => fee.id === Number(value));
+                        const selectedFee = fees.find(
+                          (fee) => fee.id === Number(value)
+                        );
                         setSelectedFeeType(selectedFee?.type || "");
                       }}
                       defaultValue={field.value?.toString()}
@@ -188,9 +201,13 @@ export function CreatePaymentDialog({
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                        <SelectItem value="credit_card">Credit Card</SelectItem>
-                        <SelectItem value="not yet paid">Not Yet Paid</SelectItem>
+                        <SelectItem value="bank transfer">
+                          Bank Transfer
+                        </SelectItem>
+                        <SelectItem value="credit card">Credit Card</SelectItem>
+                        <SelectItem value="not yet paid">
+                          Not Yet Paid
+                        </SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
@@ -230,4 +247,4 @@ export function CreatePaymentDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}
