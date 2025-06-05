@@ -14,6 +14,15 @@ export interface DashboardResponse {
     tenant: number;
     relative: number;
   };
+  totalFee: number;
+  paymentGroupByStatus: {
+    cash: number;
+    bank_transfer: number;
+    credit_card: number;
+    not_yet_paid_this_month: number;
+    other: number;
+    not_yet_paid_previous_month: number;
+  };
   monthlyRevenues: {
     time: string;
     revenue: number;
