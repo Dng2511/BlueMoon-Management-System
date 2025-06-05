@@ -24,9 +24,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { logActivity } from "@/lib/utils/activity-logger";
 
 function handleLogout() {
-  // Optionally, clear any auth tokens/cookies here
+  const userStr = localStorage.getItem("User");
+  if (userStr) {
+    try {
+      const user = JSON.parse(userStr);
+      logActivity("User Logout", `${user.username} logged out`, "LOGOUT");
+    } catch (error) {
+      console.error("Failed to log logout activity:", error);
+    }
+  }
   localStorage.removeItem("User");
   window.location.href = "/auth";
 }

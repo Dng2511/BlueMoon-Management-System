@@ -7,6 +7,7 @@ import {
 } from "../types/resident";
 import { toast } from "sonner";
 import { useDebounce } from "./use-debounce";
+import { logActivity } from "@/lib/utils/activity-logger";
 
 export function useResidents(params?: {
   search?: string;
@@ -57,6 +58,11 @@ export function useResidents(params?: {
         search: debouncedSearch,
       });
       setResidents((prev) => ({ ...prev, data: updatedData }));
+      logActivity(
+        "Create Resident",
+        `Created resident: ${data.fullName}`,
+        "CREATE"
+      );
       toast.success("Resident created successfully");
     } catch (error) {
       toast.error("Failed to create resident");
@@ -75,6 +81,11 @@ export function useResidents(params?: {
         search: debouncedSearch,
       });
       setResidents((prev) => ({ ...prev, data: updatedData }));
+      logActivity(
+        "Update Resident",
+        `Updated resident: ${data.fullName}`,
+        "UPDATE"
+      );
       toast.success("Resident updated successfully");
     } catch (error) {
       toast.error("Failed to update resident");
@@ -87,12 +98,18 @@ export function useResidents(params?: {
   const deleteResident = async (id: number) => {
     try {
       setDeleteLoading(true);
+      const resident = residents.data?.content.find((r) => r.id === id);
       await residentsApi.deleteResident(id);
       const updatedData = await residentsApi.getResidents({
         ...params,
         search: debouncedSearch,
       });
       setResidents((prev) => ({ ...prev, data: updatedData }));
+      logActivity(
+        "Delete Resident",
+        `Deleted resident: ${resident?.fullName}`,
+        "DELETE"
+      );
       toast.success("Resident deleted successfully");
     } catch (error) {
       toast.error("Failed to delete resident");

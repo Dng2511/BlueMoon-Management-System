@@ -60,30 +60,30 @@ const data = {
   ],
   navDocuments: [
     {
-      name: "Reports",
-      url: "/reports",
+      name: "Statistics",
+      url: "/statistics",
       icon: IconChartBar,
     },
     {
       name: "Documents",
-      url: "/documents",
+      url: "/",
       icon: IconFileDescription,
     },
   ],
   navSecondary: [
     {
       title: "Settings",
-      url: "/settings",
+      url: "/profile",
       icon: IconSettings,
     },
     {
       title: "Help & Support",
-      url: "/help",
+      url: "/",
       icon: IconHelp,
     },
     {
       title: "Search",
-      url: "/search",
+      url: "/",
       icon: IconSearch,
     },
   ],

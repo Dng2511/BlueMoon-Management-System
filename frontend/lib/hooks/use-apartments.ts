@@ -6,6 +6,7 @@ import {
   UpdateApartmentRequest,
 } from "../types/apartment";
 import { toast } from "sonner";
+import { logActivity } from "@/lib/utils/activity-logger";
 
 export function useApartments(params?: {
   search?: string;
@@ -47,6 +48,11 @@ export function useApartments(params?: {
       await apartmentsApi.createApartment(data);
       const updatedData = await apartmentsApi.getApartments(params);
       setApartments((prev) => ({ ...prev, data: updatedData }));
+      logActivity(
+        "Create Apartment",
+        `Created apartment: ${data.name}`,
+        "CREATE"
+      );
       toast.success("Apartment created successfully");
     } catch (error) {
       toast.error("Failed to create apartment");
@@ -62,6 +68,11 @@ export function useApartments(params?: {
       await apartmentsApi.updateApartment(id, data);
       const updatedData = await apartmentsApi.getApartments(params);
       setApartments((prev) => ({ ...prev, data: updatedData }));
+      logActivity(
+        "Update Apartment",
+        `Updated apartment: ${data.name}`,
+        "UPDATE"
+      );
       toast.success("Apartment updated successfully");
     } catch (error) {
       toast.error("Failed to update apartment");
@@ -74,9 +85,15 @@ export function useApartments(params?: {
   const deleteApartment = async (id: number) => {
     try {
       setDeleteLoading(true);
+      const apartment = apartments.data?.content.find((a) => a.id === id);
       await apartmentsApi.deleteApartment(id);
       const updatedData = await apartmentsApi.getApartments(params);
       setApartments((prev) => ({ ...prev, data: updatedData }));
+      logActivity(
+        "Delete Apartment",
+        `Deleted apartment: ${apartment?.name}`,
+        "DELETE"
+      );
       toast.success("Apartment deleted successfully");
     } catch (error) {
       toast.error("Failed to delete apartment");
