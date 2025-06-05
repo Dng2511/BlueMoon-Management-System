@@ -57,10 +57,7 @@ export default function Page() {
         totalApartments={data.apartment}
         totalResidents={data.total_resident}
         permanentResidents={data.residentGroupByStayStatus.permanent_residence}
-        totalRevenue={data.monthlyRevenues.reduce(
-          (acc, curr) => acc + curr.revenue,
-          0
-        )}
+        totalFee={data.totalFee}
       />
       <div className="px-4 lg:px-6 flex flex-col gap-6">
         <ChartAreaInteractive data={data.monthlyRevenues} />
@@ -83,19 +80,12 @@ export default function Page() {
               })
             )}
           />
-          {/* <ChartPieDonutText
-            title="Annual Revenue"
-            data={data.annualRevenues.map((item) => ({
-              name: item.time,
-              value: item.revenue,
-            }))}
-          /> */}
           <ChartPieDonutText
-            title="Residents by Stay Status"
-            data={Object.entries(data.residentGroupByStayStatus).map(
+            title="Payment Status"
+            data={Object.entries(data.paymentGroupByStatus).map(
               ([key, value]) => ({
                 name: key,
-                value: value,
+                value: Number(value),
               })
             )}
           />
