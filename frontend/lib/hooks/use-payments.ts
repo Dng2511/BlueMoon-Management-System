@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { paymentsApi } from "../api/payments";
 import { toast } from "sonner";
 import { Payment, CreatePaymentRequest } from "../types/payment";
+import { logActivity } from "@/lib/utils/activity-logger";
 
 interface UsePaymentsParams {
   page?: number;
@@ -10,7 +11,13 @@ interface UsePaymentsParams {
   search?: string;
 }
 
-type UpdatePaymentData = Partial<Omit<Payment, 'id' | 'resident' | 'fee'> & { residentId?: number; feeId?: number; date_paid?: string | null }>;
+type UpdatePaymentData = Partial<
+  Omit<Payment, "id" | "resident" | "fee"> & {
+    residentId?: number;
+    feeId?: number;
+    date_paid?: string | null;
+  }
+>;
 
 export function usePayments(params?: UsePaymentsParams) {
   const queryClient = useQueryClient();
@@ -23,11 +30,17 @@ export function usePayments(params?: UsePaymentsParams) {
 
   const deletePayment = useMutation({
     mutationFn: (id: number) => paymentsApi.deletePayment(id),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
       if (currentFeeId) {
         queryClient.invalidateQueries({ queryKey: ["fee", currentFeeId] });
       }
+      const payment = paymentsData.data?.content.find((p) => p.id === id);
+      logActivity(
+        "Delete Payment",
+        `Deleted payment for ${payment?.fee.type}`,
+        "DELETE"
+      );
       toast.success("Payment deleted successfully");
     },
     onError: (error: any) => {
@@ -37,7 +50,7 @@ export function usePayments(params?: UsePaymentsParams) {
 
   const bulkDeletePayments = useMutation({
     mutationFn: async (ids: number[]) => {
-      return Promise.all(ids.map(id => paymentsApi.deletePayment(id)));
+      return Promise.all(ids.map((id) => paymentsApi.deletePayment(id)));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
@@ -47,7 +60,9 @@ export function usePayments(params?: UsePaymentsParams) {
       toast.success("Payments deleted successfully");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to delete payments in bulk");
+      toast.error(
+        error?.response?.data?.message || "Failed to delete payments in bulk"
+      );
     },
   });
 
@@ -59,6 +74,11 @@ export function usePayments(params?: UsePaymentsParams) {
       if (currentFeeId && currentFeeId !== variables.fee_id) {
         queryClient.invalidateQueries({ queryKey: ["fee", currentFeeId] });
       }
+      logActivity(
+        "Create Payment",
+        `Created payment for ${variables.fee_id}`,
+        "CREATE"
+      );
       toast.success("Payment created successfully");
     },
     onError: (error: any) => {
@@ -79,6 +99,11 @@ export function usePayments(params?: UsePaymentsParams) {
       if (data.feeId && data.feeId !== currentFeeId) {
         queryClient.invalidateQueries({ queryKey: ["fee", data.feeId] });
       }
+      logActivity(
+        "Update Payment",
+        `Updated payment for fee ID: ${data.feeId}`,
+        "UPDATE"
+      );
       toast.success("Payment updated successfully");
     },
     onError: (error: any) => {
@@ -87,12 +112,15 @@ export function usePayments(params?: UsePaymentsParams) {
   });
 
   const searchPayments = useMutation({
-    mutationFn: (query: string) => paymentsApi.getPayments({ ...params, search: query }),
+    mutationFn: (query: string) =>
+      paymentsApi.getPayments({ ...params, search: query }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to search payments");
+      toast.error(
+        error?.response?.data?.message || "Failed to search payments"
+      );
     },
   });
 

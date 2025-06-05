@@ -91,6 +91,8 @@ interface ResidentsTableProps {
   isUpdating?: boolean;
   isDeleting?: boolean;
   apartmentId?: number;
+  searchQuery: string;
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>;
 }
 
 function DragHandle({ id }: { id: number }) {
@@ -150,6 +152,8 @@ export function ResidentsTable({
   isUpdating,
   isDeleting,
   apartmentId,
+  searchQuery,
+  setSearchQuery,
 }: ResidentsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -384,12 +388,8 @@ export function ResidentsTable({
         <div className="flex flex-1 items-center space-x-2">
           <Input
             placeholder="Filter by name..."
-            value={
-              (table.getColumn("fullName")?.getFilterValue() as string) ?? ""
-            }
-            onChange={(event) =>
-              table.getColumn("fullName")?.setFilterValue(event.target.value)
-            }
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
             className="h-8 w-[150px] lg:w-[250px]"
           />
           <DropdownMenu>

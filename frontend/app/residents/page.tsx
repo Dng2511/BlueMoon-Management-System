@@ -8,10 +8,19 @@ import {
   CreateResidentRequest,
   UpdateResidentRequest,
 } from "@/lib/types/resident";
+import React from "react";
 
 export default function ResidentsPage() {
-  const { residents, createResident, updateResident, deleteResident } =
-    useResidents();
+  const {
+    residents,
+    searchQuery,
+    setSearchQuery,
+    createResident,
+    updateResident,
+    deleteResident,
+  } = useResidents();
+
+  const isFirstMount = React.useRef(true);
 
   const handleCreate = async (data: CreateResidentRequest) => {
     try {
@@ -37,11 +46,17 @@ export default function ResidentsPage() {
     }
   };
 
-  if (residents.isLoading) {
+  React.useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+    }
+  }, []);
+
+  if (residents.isLoading && isFirstMount.current) {
     return (
       <div className="container mx-auto py-6 px-8 ">
         <div className="flex justify-between items-center mb-6">
-          <Skeleton className="h-9 w-64" />
+          <h1 className="text-3xl font-bold">Residents Management</h1>
         </div>
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -94,6 +109,8 @@ export default function ResidentsPage() {
         isCreating={createResident.isLoading}
         isUpdating={updateResident.isLoading}
         isDeleting={deleteResident.isLoading}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
     </div>
   );

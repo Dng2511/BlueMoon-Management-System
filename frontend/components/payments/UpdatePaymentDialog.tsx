@@ -68,7 +68,7 @@ export function UpdatePaymentDialog({
   const handleSubmit = async (values: FormValues) => {
     try {
       // Kiểm tra xem có sự thay đổi nào không
-      const hasChanges = 
+      const hasChanges =
         parseInt(values.resident_id) !== payment.resident.id ||
         values.payment_method !== payment.status;
 
@@ -97,8 +97,8 @@ export function UpdatePaymentDialog({
         date_paid,
       };
 
-      console.log('Current payment:', payment);
-      console.log('Update data:', updateData);
+      console.log("Current payment:", payment);
+      console.log("Update data:", updateData);
 
       await onSubmit?.(updateData);
       setOpen(false);
@@ -147,7 +147,8 @@ export function UpdatePaymentDialog({
                           key={resident.id}
                           value={resident.id.toString()}
                         >
-                          {resident.fullName} {resident.apartment ? `(${resident.apartment})` : ""}
+                          {resident.fullName}{" "}
+                          {resident.apartment ? `(${resident.apartment})` : ""}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -173,8 +174,10 @@ export function UpdatePaymentDialog({
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                      <SelectItem value="credit_card">Credit Card</SelectItem>
+                      <SelectItem value="bank transfer">
+                        Bank Transfer
+                      </SelectItem>
+                      <SelectItem value="credit card">Credit Card</SelectItem>
                       <SelectItem value="not yet paid">Not Yet Paid</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
                     </SelectContent>
@@ -193,4 +196,4 @@ export function UpdatePaymentDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}
