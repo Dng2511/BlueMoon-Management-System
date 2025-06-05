@@ -25,6 +25,16 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
+function handleLogout() {
+  // Optionally, clear any auth tokens/cookies here
+  localStorage.removeItem("User");
+  window.location.href = "/auth";
+}
+
+function handleProfile() {
+  window.location.href = "/profile";
+}
+
 export function NavUser({
   user,
 }: {
@@ -45,7 +55,7 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
@@ -80,7 +90,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleProfile}>
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
@@ -94,7 +104,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
