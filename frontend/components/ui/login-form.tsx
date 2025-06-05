@@ -9,14 +9,14 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { login , error } = useLogin();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await login(email, password);
-    const data = await login(email, password);
+    await login(username, password);
+    const data = await login(username, password);
     if (data) {
         localStorage.setItem("User", JSON.stringify(data));
         window.location.href = "/dashboard";
@@ -28,19 +28,19 @@ export function LoginForm({
       <div className="flex flex-col items-center gap-2 text-center">
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-muted-foreground text-sm text-balance">
-          Enter your email below to login to your account
+          Enter your username and password
         </p>
       </div>
       <div className="grid gap-6">
         <div className="grid gap-3">
-          <Label htmlFor="text">Email</Label>
+          <Label htmlFor="username">Username</Label>
           <Input
-            id="email"
+            id="username"
             type="text"
-            placeholder="m@example.com"
+            placeholder="Enter your username"
             required
-            value={email}
-            onChange={e => setEmail(e.target.value)}
+            value={username}
+            onChange={e => setUsername(e.target.value)}
           />
         </div>
         <div className="grid gap-3">
