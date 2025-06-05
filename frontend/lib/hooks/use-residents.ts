@@ -6,6 +6,7 @@ import {
   Resident,
 } from "../types/resident";
 import { toast } from "sonner";
+import { useDebounce } from "./use-debounce";
 
 export function useResidents(params?: {
   search?: string;
@@ -13,6 +14,9 @@ export function useResidents(params?: {
   page?: number;
   size?: number;
 }) {
+  const [searchQuery, setSearchQuery] = useState(params?.search || "");
+  const debouncedSearch = useDebounce(searchQuery, 300);
+
   const [residents, setResidents] = useState<{
     data?: { content: Resident[] };
     isLoading: boolean;
@@ -31,7 +35,10 @@ export function useResidents(params?: {
     const fetchResidents = async () => {
       try {
         setResidents((prev) => ({ ...prev, isLoading: true, isError: false }));
-        const data = await residentsApi.getResidents(params);
+        const data = await residentsApi.getResidents({
+          ...params,
+          search: debouncedSearch,
+        });
         setResidents({ data, isLoading: false, isError: false });
       } catch (error) {
         setResidents({ isLoading: false, isError: true, error });
@@ -39,13 +46,16 @@ export function useResidents(params?: {
     };
 
     fetchResidents();
-  }, [params]);
+  }, [debouncedSearch, params]);
 
   const createResident = async (data: CreateResidentRequest) => {
     try {
       setCreateLoading(true);
       await residentsApi.createResident(data);
-      const updatedData = await residentsApi.getResidents(params);
+      const updatedData = await residentsApi.getResidents({
+        ...params,
+        search: debouncedSearch,
+      });
       setResidents((prev) => ({ ...prev, data: updatedData }));
       toast.success("Resident created successfully");
     } catch (error) {
@@ -60,7 +70,10 @@ export function useResidents(params?: {
     try {
       setUpdateLoading(true);
       await residentsApi.updateResident(id, data);
-      const updatedData = await residentsApi.getResidents(params);
+      const updatedData = await residentsApi.getResidents({
+        ...params,
+        search: debouncedSearch,
+      });
       setResidents((prev) => ({ ...prev, data: updatedData }));
       toast.success("Resident updated successfully");
     } catch (error) {
@@ -75,7 +88,10 @@ export function useResidents(params?: {
     try {
       setDeleteLoading(true);
       await residentsApi.deleteResident(id);
-      const updatedData = await residentsApi.getResidents(params);
+      const updatedData = await residentsApi.getResidents({
+        ...params,
+        search: debouncedSearch,
+      });
       setResidents((prev) => ({ ...prev, data: updatedData }));
       toast.success("Resident deleted successfully");
     } catch (error) {
@@ -88,6 +104,8 @@ export function useResidents(params?: {
 
   return {
     residents,
+    searchQuery,
+    setSearchQuery,
     createResident: { mutateAsync: createResident, isLoading: createLoading },
     updateResident: { mutateAsync: updateResident, isLoading: updateLoading },
     deleteResident: { mutateAsync: deleteResident, isLoading: deleteLoading },
