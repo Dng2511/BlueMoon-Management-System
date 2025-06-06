@@ -100,7 +100,7 @@ public class PaymentServiceImpl implements PaymentService {
             payment.setDatePaid(null); // ngày mặc định
         } else {
             payment.setStatus(method);
-            if (payment.getDatePaid() != null) payment.setDatePaid(LocalDate.now());
+            if (payment.getDatePaid() == null) payment.setDatePaid(LocalDate.now());
         }
         return PaymentDTO.fromEntity(paymentRepository.save(payment));
     }
