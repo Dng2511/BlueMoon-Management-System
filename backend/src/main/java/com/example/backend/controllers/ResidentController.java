@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class ResidentController {
                                                     @RequestParam(value = "limit", defaultValue = "20") int limit,
                                                     @RequestParam(value = "search", required = false) String search,
                                                     @RequestParam(value = "gender", required = false) String gender) {
-        Pageable pageable = PageRequest.of(page - 1, limit);
+        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(Sort.Direction.DESC, "id"));
         return ResponseEntity.ok(residentService.getAllResidents(pageable, search, gender));
     }
 
