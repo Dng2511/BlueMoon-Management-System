@@ -9,6 +9,8 @@ services:
     environment:
       - ACCEPT_EULA=y
       - SA_PASSWORD=etronTR04
+    volumes:
+      - ./init:/init
     networks:
       - backend-net
 

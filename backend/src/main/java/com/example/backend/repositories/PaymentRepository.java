@@ -36,6 +36,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             "JOIN p.fee f " +
             "WHERE (f.year = :year AND f.month <= :month) " +
             "   OR (f.year = :previousYear AND f.month >= :month) " +
+            "AND p.status <> 'not yet paid' " +
             "GROUP BY f.year, f.month " +
             "ORDER BY f.year, f.month")
     List<Revenue> getMonthlyRevenueInOneYearRange(
@@ -49,6 +50,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             "FROM Payment p " +
             "JOIN p.fee f " +
             "WHERE f.year BETWEEN :startYear AND :endYear " +
+            "AND p.status <> 'not yet paid' " +
             "GROUP BY f.year " +
             "ORDER BY f.year")
     List<Revenue> getAnnualRevenue(

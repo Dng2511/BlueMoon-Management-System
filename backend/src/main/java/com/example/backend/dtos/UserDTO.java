@@ -3,6 +3,7 @@ package com.example.backend.dtos;
 import com.example.backend.models.User;
 import com.example.backend.models.enums.Role;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import jakarta.persistence.Column;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -23,6 +24,7 @@ import lombok.experimental.FieldDefaults;
 public class UserDTO {
     Long id;
 
+    @Column(nullable = false, unique = true)
     String username;
 
     String password;

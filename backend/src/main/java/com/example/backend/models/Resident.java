@@ -33,8 +33,10 @@ public class Resident extends BaseModel {
     private StayStatus stayStatus;
 
     @ManyToOne
-    @JoinColumn(name = "room_id")
+    @JoinColumn(name = "apartment_id")
     private Apartment apartment;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "relation", columnDefinition = "NVARCHAR(50)")
     private Relation relation;
 }
