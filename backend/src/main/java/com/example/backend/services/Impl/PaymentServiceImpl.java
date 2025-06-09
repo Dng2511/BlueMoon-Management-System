@@ -5,6 +5,8 @@ import com.example.backend.dtos.PaymentDTO;
 import com.example.backend.models.Fee;
 import com.example.backend.models.Payment;
 import com.example.backend.models.Resident;
+import com.example.backend.models.Vehicle;
+import com.example.backend.models.enums.VehicleType;
 import com.example.backend.repositories.FeeRepository;
 import com.example.backend.repositories.PaymentRepository;
 import com.example.backend.repositories.ResidentRepository;
@@ -54,9 +56,15 @@ public class PaymentServiceImpl implements PaymentService {
         if (Objects.equals(fee.getType(), "area")) {
             quantity = resident.getApartment().getArea();
         }
+
+
         // Thiết lập số lượng và số tiền đã thanh toán
         payment.setQuantity(quantity);
         payment.setAmountPaid(fee.getAmount()*quantity);
+
+
+
+
 
         // Lấy phương thức thanh toán từ dữ liệu, nếu không có thì mặc định là null
         String method = data.hasNonNull("payment_method") ? data.get("payment_method").asText() : null;
@@ -118,12 +126,25 @@ public class PaymentServiceImpl implements PaymentService {
         if (Objects.equals(fee.getType(), "area")) {
             quantity = resident.getApartment().getArea();
         }
+
         payment.setResident(resident);
         payment.setFee(fee);
         payment.setQuantity(quantity);
-        payment.setAmountPaid(fee.getAmount()*quantity);
+
         payment.setStatus("not yet paid");
         payment.setDatePaid(null);
+        if (Objects.equals(fee.getType(), "vehicle")) {
+            payment.setQuantity(resident.getApartment().getVehicles().size());
+            int amountPaid = 0;
+            for (Vehicle vehicle : resident.getApartment().getVehicles()) {
+                if(vehicle.getVehicleType() == VehicleType.CAR) amountPaid += 1200000;
+                else amountPaid += 70000;
+            }
+            payment.setAmountPaid(amountPaid);
+        } else {
+            payment.setAmountPaid(fee.getAmount()*quantity);
+        }
+
 
         paymentRepository.save(payment);
     }

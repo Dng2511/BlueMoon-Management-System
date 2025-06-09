@@ -23,4 +23,7 @@ public class Apartment extends BaseModel {
 
     @OneToMany(mappedBy = "apartment")
     private List<Resident> residents;
+
+    @OneToMany(mappedBy = "apartment")
+    private List<Vehicle> vehicles;
 }
