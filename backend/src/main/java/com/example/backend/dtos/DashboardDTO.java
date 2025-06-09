@@ -4,6 +4,7 @@ import com.example.backend.dtos.subDTO.PaymentGroupByStatus;
 import com.example.backend.dtos.subDTO.ResidentGroupByRelation;
 import com.example.backend.dtos.subDTO.ResidentGroupByStayStatus;
 import com.example.backend.dtos.subDTO.Revenue;
+import com.example.backend.models.Vehicle;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.AllArgsConstructor;
