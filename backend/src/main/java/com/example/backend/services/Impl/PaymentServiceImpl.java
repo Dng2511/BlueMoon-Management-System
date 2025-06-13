@@ -135,6 +135,7 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setDatePaid(null);
         if (Objects.equals(fee.getType(), "vehicle")) {
             payment.setQuantity(resident.getApartment().getVehicles().size());
+
             int amountPaid = 0;
             for (Vehicle vehicle : resident.getApartment().getVehicles()) {
                 if(vehicle.getVehicleType() == VehicleType.CAR) amountPaid += 1200000;
@@ -144,7 +145,7 @@ public class PaymentServiceImpl implements PaymentService {
         } else {
             payment.setAmountPaid(fee.getAmount()*quantity);
         }
-
+        if (payment.getQuantity() == 0) return;
 
         paymentRepository.save(payment);
     }
