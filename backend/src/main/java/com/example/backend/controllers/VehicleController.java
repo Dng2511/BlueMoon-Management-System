@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/residents")
+@RequestMapping("/vehicles")
 @RequiredArgsConstructor
 public class VehicleController {
     private final VehicleService vehicleService;
