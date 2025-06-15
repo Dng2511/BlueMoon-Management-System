@@ -5,6 +5,8 @@ import lombok.Data;
 
 @Data
 public class VehicleDTO {
+    private Long id;
+
     private String license;
 
     private String type;
@@ -13,6 +15,8 @@ public class VehicleDTO {
 
     public static VehicleDTO fromEntity(Vehicle vehicle) {
         VehicleDTO vehicleDTO = new VehicleDTO();
+
+vehicleDTO.setId(vehicle.getId());
         vehicleDTO.setLicense(vehicle.getLicense());
         vehicleDTO.setType(vehicle.getVehicleType().name());
         vehicleDTO.setApartment(vehicle.getApartment().getName());
