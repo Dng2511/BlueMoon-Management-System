@@ -47,7 +47,7 @@ public class PaymentDTO {
 
     @Getter
     @Setter
-    static class ResPayment{
+    public static class ResPayment{
         private Long id;
         private String fullName;
         private String apartment;
