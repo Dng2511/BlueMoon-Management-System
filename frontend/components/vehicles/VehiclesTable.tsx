@@ -62,6 +62,7 @@ import { Vehicle, VehiclesResponse } from "@/lib/types/vehicle";
 import { ConfirmationDialog } from "@/components/ui/ConfirmationDialog";
 import { usePagination } from "@/lib/hooks/use-pagination";
 import { CreateVehicleDialog } from "./CreateVehicleDialog";
+import { UpdateVehicleDialog } from "./UpdateVehicleDialog";
 
 export const schema = z.object({
   license: z.string(),
@@ -179,50 +180,52 @@ export function VehiclesTable({
     },
     {
       id: "actions",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon"
-            >
-              <IconDotsVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-32">
-            <DropdownMenuItem
-              onClick={() =>
-                onEdit?.(parseInt(row.original.license), row.original)
-              }
-            >
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <ConfirmationDialog
-              trigger={
-                <DropdownMenuItem
-                  variant="destructive"
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  Delete
-                </DropdownMenuItem>
-              }
-              title="Are you sure?"
-              description="This action cannot be undone. This will permanently delete the vehicle from the system."
-              confirmText={isDeleting ? "Deleting..." : "Delete"}
-              onConfirm={() => {
-                if (onDelete) {
-                  onDelete(parseInt(row.original.license));
+      cell: ({ row }) => {
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+                size="icon"
+              >
+                <IconDotsVertical />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-32">
+              <div className="px-2 py-1.5">
+                <UpdateVehicleDialog
+                  vehicle={row.original}
+                  onSubmit={onEdit || (() => Promise.resolve())}
+                  isLoading={isUpdating}
+                />
+              </div>
+              <DropdownMenuSeparator />
+              <ConfirmationDialog
+                trigger={
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={(e) => e.preventDefault()}
+                  >
+                    Delete
+                  </DropdownMenuItem>
                 }
-              }}
-              isConfirming={isDeleting}
-              confirmButtonVariant="destructive"
-            />
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
+                title="Are you sure?"
+                description="This action cannot be undone. This will permanently delete the vehicle from the system."
+                confirmText={isDeleting ? "Deleting..." : "Delete"}
+                onConfirm={() => {
+                  if (onDelete) {
+                    onDelete(row.original.id);
+                  }
+                }}
+                isConfirming={isDeleting}
+                confirmButtonVariant="destructive"
+              />
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
 
@@ -265,7 +268,7 @@ export function VehiclesTable({
       rowSelection,
       columnFilters,
     },
-    getRowId: (row) => row.license,
+    getRowId: (row) => row.id.toString(),
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,

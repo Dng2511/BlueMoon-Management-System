@@ -1,6 +1,7 @@
 export type VehicleType = "CAR" | "MOTORBIKE";
 
 export interface Vehicle {
+  id: number;
   license: string;
   type: VehicleType;
   apartment: string;

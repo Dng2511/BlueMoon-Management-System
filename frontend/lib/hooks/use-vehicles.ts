@@ -99,9 +99,7 @@ export function useVehicles(params?: {
   const deleteVehicle = async (id: number) => {
     try {
       setDeleteLoading(true);
-      const vehicle = vehicles.data?.content.find(
-        (v) => v.license === id.toString()
-      );
+      const vehicle = vehicles.data?.content.find((v) => v.id === id);
       await vehiclesApi.deleteVehicle(id);
       const updatedData = await vehiclesApi.getVehicles({
         ...params,
