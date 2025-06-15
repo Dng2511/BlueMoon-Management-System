@@ -14,6 +14,7 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconCar,
 } from "@tabler/icons-react";
 
 import { NavDocuments } from "@/components/nav-documents";
@@ -46,6 +47,11 @@ const data = {
       title: "Apartments",
       url: "/apartments",
       icon: IconBuilding,
+    },
+    {
+      title: "Vehicles",
+      url: "/vehicles",
+      icon: IconCar,
     },
     {
       title: "Fees",

@@ -34,8 +34,6 @@ import {
 import { CreateFeeRequest } from "@/lib/types/fee";
 import { IconPlus } from "@tabler/icons-react";
 import { MonthSelect } from "@/components/ui/month-select";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 const formSchema = z.object({
   type: z.string().min(2, "Fee type must be at least 2 characters"),
@@ -50,12 +48,9 @@ interface CreateFeeDialogProps {
   isLoading?: boolean;
 }
 
-export function CreateFeeDialog({
-  onSubmit,
-  isLoading,
-}: CreateFeeDialogProps) {
+export function CreateFeeDialog({ onSubmit, isLoading }: CreateFeeDialogProps) {
   const [open, setOpen] = React.useState(false);
-  const [isAreaFee, setIsAreaFee] = React.useState(true);
+  const [isCustomType, setIsCustomType] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -78,15 +73,17 @@ export function CreateFeeDialog({
     }
   };
 
-  // Cập nhật giá trị type và compulsory khi toggle thay đổi
-  React.useEffect(() => {
-    if (isAreaFee) {
-      form.setValue("type", "area");
-      form.setValue("compulsory", true);
-    } else {
+  const handleTypeChange = (value: string) => {
+    if (value === "other") {
+      setIsCustomType(true);
       form.setValue("type", "");
+    } else {
+      setIsCustomType(false);
+      form.setValue("type", value);
+      // Set compulsory based on type
+      form.setValue("compulsory", value === "area");
     }
-  }, [isAreaFee, form]);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -114,35 +111,33 @@ export function CreateFeeDialog({
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Fee Type</FormLabel>
-                      <div className="flex items-center space-x-2">
-                        <Label htmlFor="area-fee" className="text-sm text-muted-foreground">Phí diện tích</Label>
-                        <Switch
-                          id="area-fee"
-                          checked={isAreaFee}
-                          onCheckedChange={setIsAreaFee}
-                        />
-                      </div>
-                    </div>
-                    <FormControl>
-                      <Input 
-                        placeholder="Enter fee type" 
-                        {...field} 
-                        disabled={isAreaFee}
-                        value={isAreaFee ? "area" : field.value}
-                        onChange={(e) => {
-                          if (!isAreaFee) {
-                            field.onChange(e.target.value);
-                          }
-                        }}
-                      />
-                    </FormControl>
+                    <FormLabel>Fee Type</FormLabel>
+                    {isCustomType ? (
+                      <FormControl>
+                        <Input placeholder="Enter custom fee type" {...field} />
+                      </FormControl>
+                    ) : (
+                      <Select
+                        onValueChange={handleTypeChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select fee type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="area">Phí diện tích</SelectItem>
+                          <SelectItem value="vehicle">Phí gửi xe</SelectItem>
+                          <SelectItem value="other">Khác</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -155,14 +150,16 @@ export function CreateFeeDialog({
                           type="number"
                           placeholder="Enter amount"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="month"
@@ -204,9 +201,11 @@ export function CreateFeeDialog({
                   <FormItem>
                     <FormLabel>Compulsory</FormLabel>
                     <Select
-                      onValueChange={(value) => field.onChange(value === "true")}
+                      onValueChange={(value) =>
+                        field.onChange(value === "true")
+                      }
                       defaultValue={field.value ? "true" : "false"}
-                      disabled={isAreaFee}
+                      disabled={form.getValues("type") === "area"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -223,7 +222,7 @@ export function CreateFeeDialog({
                 )}
               />
             </div>
-            
+
             <DialogFooter>
               <Button type="submit" disabled={isLoading}>
                 {isLoading ? "Creating..." : "Create Fee"}
@@ -234,4 +233,4 @@ export function CreateFeeDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}
