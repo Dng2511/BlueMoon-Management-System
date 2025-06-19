@@ -31,11 +31,21 @@ import { formatCurrency } from "@/lib/utils";
 export const description = "An interactive area chart";
 
 interface ChartAreaInteractiveProps {
-  data: {
+  month: {
+    time: string;
+    revenue: number;
+  }[];
+  year: {
     time: string;
     revenue: number;
   }[];
 }
+
+
+type RevenueData = {
+  time: string;
+  revenue: number;
+};
 
 const chartConfig = {
   visitors: {
@@ -51,44 +61,26 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
+export function ChartAreaInteractive({ month, year }: ChartAreaInteractiveProps) {
   const isMobile = useIsMobile();
-  const [timeRange, setTimeRange] = React.useState("90d");
+  const [timeRange, setTimeRange] = React.useState("3 months");
+  const [data, setData] = React.useState<RevenueData[]>([]);
 
   React.useEffect(() => {
-    if (isMobile) {
-      setTimeRange("7d");
-    }
-  }, [isMobile]);
+    if (timeRange == "3 months") setData(month.slice(-3))
+    else if (timeRange == "1 year") setData(month);
+    else if (timeRange == "years") setData(year);
+  }, [timeRange, month, year])
 
-  const filteredData = React.useMemo(() => {
-    if (!data.length) return [];
 
-    const referenceDate = new Date(
-      data[data.length - 1].time.split("-").reverse().join("-")
-    );
-    let daysToSubtract = 90;
-    if (timeRange === "30d") {
-      daysToSubtract = 30;
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7;
-    }
-    const startDate = new Date(referenceDate);
-    startDate.setDate(startDate.getDate() - daysToSubtract);
-
-    return data.filter((item) => {
-      const date = new Date(item.time.split("-").reverse().join("-"));
-      return date >= startDate;
-    });
-  }, [timeRange, data]);
 
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Monthly Revenue</CardTitle>
+        <CardTitle>Revenue</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
-            Total for the last 3 months
+            {`Total for the last ${timeRange}`}
           </span>
           <span className="@[540px]/card:hidden">Last 3 months</span>
         </CardDescription>
@@ -100,9 +92,9 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
             variant="outline"
             className="hidden *:data-[slot=toggle-group-item]:!px-4 @[767px]/card:flex"
           >
-            <ToggleGroupItem value="90d">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
+            <ToggleGroupItem value="3 months">Last 3 months</ToggleGroupItem>
+            <ToggleGroupItem value="1 year">Last 1 year</ToggleGroupItem>
+            <ToggleGroupItem value="years">Years</ToggleGroupItem>
           </ToggleGroup>
           <Select value={timeRange} onValueChange={setTimeRange}>
             <SelectTrigger
@@ -113,14 +105,14 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
               <SelectValue placeholder="Last 3 months" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
+              <SelectItem value="3 months" className="rounded-lg">
                 Last 3 months
               </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
-                Last 30 days
+              <SelectItem value="1 year" className="rounded-lg">
+                Last 1 year
               </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
+              <SelectItem value="years" className="rounded-lg">
+                Years
               </SelectItem>
             </SelectContent>
           </Select>
@@ -131,7 +123,7 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          <AreaChart data={filteredData}>
+          <AreaChart data={data}>
             <defs>
               <linearGradient id="fillRevenue" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#84daff" stopOpacity={1.0} />
@@ -146,8 +138,7 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
               tickMargin={8}
               minTickGap={32}
               tickFormatter={(value) => {
-                const [month, year] = value.split("-");
-                return `${month}/${year}`;
+                return value;
               }}
             />
             <ChartTooltip
@@ -156,8 +147,7 @@ export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
               content={
                 <ChartTooltipContent
                   labelFormatter={(value: string) => {
-                    const [month, year] = value.split("-");
-                    return `${month}/${year}`;
+                    return value;
                   }}
                   formatter={(value: any) => formatCurrency(Number(value))}
                   indicator="dot"
