@@ -60,7 +60,7 @@ export default function Page() {
         totalFee={data.totalFee}
       />
       <div className="px-4 lg:px-6 flex flex-col gap-6">
-        <ChartAreaInteractive data={data.monthlyRevenues} />
+        <ChartAreaInteractive month={data.monthlyRevenues} year={data.annualRevenues} />
         <div className="flex gap-3 w-full justify-between items-center flex-wrap p-2">
           <ChartPieDonutText
             title="Residents by Relation"
